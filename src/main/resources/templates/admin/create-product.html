@@ -1,0 +1,95 @@
+<!-- fragments/create-product.html -->
+<div th:fragment="createProduct">
+ <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="section-title mb-1">Create New Product</h2>
+        <p class="text-muted mb-0">Add a new product to your inventory</p>
+      </div>
+      <a href="/products" class="btn back-btn">
+        <i class="fas fa-arrow-left me-2"></i> Back to Products
+      </a>
+    </div>
+    
+     <!-- Form Container -->
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data" th:object="${productDto}">
+          <!-- Product Information Section -->
+          <div class="form-section">
+            <h5 class="text-primary d-flex align-items-center mb-3">
+              <span class="material-symbols-outlined me-2">info</span>
+              Product Information
+            </h5>
+            <div class="section-divider"></div>
+            
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <label for="name" class="form-label">Product Name</label>
+                <input type="text" class="form-control" id="name" th:field="${productDto.name}" placeholder="Enter product name">
+                <p th:if="${#fields.hasErrors('name')}" th:errorclass="error-message" th:errors="${productDto.name}"></p>
+              </div>
+              <div class="col-md-6">
+                <label for="brand" class="form-label">Brand</label>
+                <input type="text" class="form-control" id="brand" th:field="${productDto.brand}" placeholder="Enter brand name">
+                <p th:if="${#fields.hasErrors('brand')}" th:errorclass="error-message" th:errors="${productDto.brand}"></p>
+              </div>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" th:field="${productDto.category}">
+                  <option value="Others">Others</option>
+                  <option value="Phones">Phones</option>
+                  <option value="Computers">Computers</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Printers">Printers</option>
+                  <option value="Cameras">Cameras</option>
+                </select>
+                <p th:if="${#fields.hasErrors('category')}" th:errorclass="error-message" th:errors="${productDto.category}"></p>
+              </div>
+              <div class="col-md-6">
+                <label for="price" class="form-label">Price</label>
+                <div class="input-group">
+                  <span class="input-group-text">₹</span>
+                  <input type="number" class="form-control" id="price" step="0.01" min="0" th:field="${productDto.price}" placeholder="0.00">
+                </div>
+                <p th:if="${#fields.hasErrors('price')}" th:errorclass="error-message" th:errors="${productDto.price}"></p>
+              </div>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col-12">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" th:field="${productDto.description}" rows="4" placeholder="Enter product description"></textarea>
+                <p th:if="${#fields.hasErrors('description')}" th:errorclass="error-message" th:errors="${productDto.description}"></p>
+              </div>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col-12">
+                <label for="imageFile" class="form-label">Product Image</label>
+                <input class="form-control" type="file" id="imageFile" th:field="${productDto.imageFile}" accept="image/*">
+                <div class="form-text">Upload a high-quality image of your product</div>
+                <p th:if="${#fields.hasErrors('imageFile')}" th:errorclass="error-message" th:errors="${productDto.imageFile}"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="d-flex gap-3 justify-content-end">
+                <a class="btn btn-outline-primary" href="/products" role="button">
+                  <i class="fas fa-times me-2"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save me-2"></i> Save Product
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>

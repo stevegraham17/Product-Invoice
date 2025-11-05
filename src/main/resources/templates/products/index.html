@@ -1,0 +1,2125 @@
+<!doctype html>
+
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Products</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <link rel="icon" href="./etiquette.png" type="image/x-icon" />
+
+  <style>
+  
+  /* Add to your existing CSS */
+:root {
+  --purple: #8b5cf6;
+  --indigo: #6366f1;
+  --teal: #14b8a6;
+}
+
+.bg-purple { background-color: var(--purple) !important; }
+.text-purple { color: var(--purple) !important; }
+.bg-indigo { background-color: var(--indigo) !important; }
+.text-indigo { color: var(--indigo) !important; }
+.bg-teal { background-color: var(--teal) !important; }
+.text-teal { color: var(--teal) !important; }
+
+.bg-purple.bg-opacity-10 { background-color: rgba(139, 92, 246, 0.1) !important; }
+.bg-indigo.bg-opacity-10 { background-color: rgba(99, 102, 241, 0.1) !important; }
+.bg-teal.bg-opacity-10 { background-color: rgba(20, 184, 166, 0.1) !important; }
+
+.progress-bar {
+  transition: width 0.6s ease;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Smooth animations for dashboard cards */
+.dashboard-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --danger: #f72585;
+      --warning: #f8961e;
+      --info: #4895ef;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --sidebar-bg: #ffffff;
+      --sidebar-hover: #f0f7ff;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printArea, #printArea * {
+        visibility: visible;
+      }
+      #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 10px;
+      }
+
+      .barcode-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      .barcode-item {
+        text-align: center;
+        padding: 10px;
+        border: 1px dashed #ccc;
+        page-break-inside: avoid;
+      }
+
+      .barcode-item img {
+        max-width: 180px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .barcode-item p {
+        margin-top: 6px;
+        font-size: 14px;
+        font-weight: bold;
+      }
+    }
+
+     body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    color: var(--dark-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-size: 14px; /* Add this line */
+}
+
+    /* navbar */
+    .navbar {
+    /* background: linear-gradient(135deg, #232b40 0%0%, var(--secondary) 100%);*/
+     
+     background: linear-gradient(60deg, #aaadb1 0% 0%, #3f66a1 100%);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      color: white !important;
+    }
+
+    .navbar-brand img {
+/*       filter: brightness(0) invert(1); */
+    }
+
+    .navbar .btn-outline-secondary {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: white;
+    }
+
+    .navbar .btn-outline-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background-color: var(--sidebar-bg);
+      border-right: 1px solid #e2e8f0;
+      padding: 20px 0;
+      height: 100vh;
+      position: fixed;
+      top: 56px;
+      left: 0;
+      width: 250px;
+      overflow-y: auto;
+      transition: var(--transition);
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+      z-index: 1000;
+    }
+
+    .sidebar .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      color: #475569;
+      border-radius: 8px;
+      margin: 4px 10px;
+      transition: var(--transition);
+      font-weight: 500;
+    }
+
+    .sidebar .nav-link span {
+      margin-left: 12px;
+      font-size: 15px;
+    }
+
+    .sidebar .nav-link:hover {
+      background-color: var(--sidebar-hover);
+      color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    .sidebar .nav-item.active .nav-link {
+      background-color: var(--sidebar-hover);
+      color: var(--primary);
+      border-left: 4px solid var(--primary);
+    }
+
+    .sidebar .material-symbols-outlined {
+      font-size: 20px;
+    }
+
+    /* Main Content */
+    #main-content {
+      margin-left: 250px;
+      padding: 30px;
+      transition: var(--transition);
+    }
+
+    @media (max-width: 991.98px) {
+      .sidebar {
+        margin-left: -250px;
+      }
+      .sidebar.active {
+        margin-left: 0;
+      }
+      #main-content {
+        margin-left: 0;
+      }
+    }
+
+    /* Cards */
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .card h5 {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    /* Dashboard Cards */
+    .dashboard-card {
+      border-top: 4px solid;
+      transition: var(--transition);
+    }
+
+    .dashboard-card:nth-child(1) {
+      border-color: var(--danger);
+    }
+
+    .dashboard-card:nth-child(2) {
+      border-color: var(--info);
+    }
+
+    .dashboard-card:nth-child(3) {
+      border-color: var(--success);
+    }
+
+    .dashboard-card:hover {
+      transform: translateY(-5px);
+    }
+
+    /* Sections */
+    .section-title {
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid #e2e8f0;
+     padding-top: 22px;
+    }
+
+    /* Products */
+    .product-card {
+      transition: var(--transition);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .product-card:hover {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-image {
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .product-actions .btn {
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .product-actions .btn:hover {
+      transform: scale(1.1);
+    }
+
+    /* Buttons */
+    .btn {
+      border-radius: 8px;
+      font-weight: 500;
+      transition: var(--transition);
+      padding: 8px 16px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border: none;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #4cc9f0 0%, #4895ef 100%);
+      border: none;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
+      border: none;
+    }
+
+    /* Tables */
+    .table {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px #e2e8f0;
+    }
+
+    .table thead th {
+      background-color: #f1f5f9;
+      color: #475569;
+      font-weight: 600;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 12px 15px;
+    }
+
+    .table tbody tr {
+      transition: var(--transition);
+    }
+
+    .table tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    /* Forms */
+    .form-control, .form-select {
+      border-radius: 8px;
+      padding: 10px 15px;
+      border: 1px solid #cbd5e1;
+      transition: var(--transition);
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .form-label {
+      font-weight: 500;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+
+    /* Profile / Company settings */
+    .profile-head {
+      height: 120px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .company-logo-container {
+      width: 130px;
+      height: 130px;
+      margin-top: -40px;
+      border: 4px solid white;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
+      position: relative;
+      background-color: white;
+    }
+
+    img#current-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .logo-upload {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+      transition: var(--transition);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo-upload:hover {
+      background: var(--secondary);
+      transform: scale(1.1);
+    }
+
+    .logo-upload input[type="file"] {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Pagination */
+    .pagination .page-link {
+      border-radius: 8px;
+      margin: 0 4px;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      transition: var(--transition);
+    }
+
+    .pagination .page-link:hover {
+      background-color: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .pagination .page-item.active .page-link {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border-color: var(--primary);
+    }
+
+    /* Modals */
+    .modal-content {
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 20px 25px 15px;
+    }
+
+    .modal-body {
+      padding: 20px 25px;
+    }
+
+    .modal-footer {
+      border-top: 1px solid #e2e8f0;
+      padding: 15px 25px 20px;
+    }
+
+    /* Filter section */
+    .filter-section {
+      background-color: #f8fafc;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .filter-toggle {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .filter-toggle:hover {
+      color: var(--secondary);
+    }
+
+    /* Search bar */
+    .search-container {
+      position: relative;
+    }
+
+    .search-container .form-control {
+      padding-left: 45px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      z-index: 5;
+    }
+
+    /* Alert messages */
+    .alert {
+      border-radius: 10px;
+      border: none;
+      padding: 12px 16px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #64748b;
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      color: #cbd5e1;
+    }
+
+    /* Loading animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    /* Section spacing */
+    #products-section, #dashboard-section, #company-settings-section, #add-cashier-section, #manage-purchase-section {
+      margin-top: 2em;
+      animation: fadeIn 0.5s ease;
+    }
+
+    /* Print button */
+    .print-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border: none;
+    }
+
+    .print-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Status badges */
+    .badge {
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-weight: 500;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex gap-2 align-items-center" href="/products">
+        <img src="/logo.png" alt="Logo" height="40" class="d-inline-block align-top">
+<!--         <span class="fw-bold">Inventory Manager</span> -->
+      </a>
+
+      <button class="btn btn-outline-secondary d-lg-none" type="button" onclick="toggleSidebar()">
+        <i class="fa fa-bars"></i>
+      </button>
+      <div class="d-flex align-items-center ms-auto">
+        <div class="d-flex align-items-center bg-white rounded-pill px-3 py-1 me-3">
+          <i class="fas fa-user-circle text-primary me-2"></i>
+          <span class="text-dark fw-medium" th:text="${username}">Username</span>
+        </div>
+        <form action="/logout" method="post">
+          <button type="submit" class="btn btn-outline-light">
+            <i class="fas fa-sign-out-alt me-1"></i> Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar">
+    <ul class="nav flex-column sidebar-menu">
+      <li class="nav-item active">
+        <a class="nav-link" href="#" onclick="showDashboard(); setActiveMenu(this)">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="showProductsPage(); setActiveMenu(this)">
+          <span class="material-symbols-outlined">package_2</span>
+          <span>Products</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="loadManagePurchase(this);">
+          <span class="material-symbols-outlined">shelves</span>
+          <span>Manage Sales</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="showAddCashier(); setActiveMenu(this)">
+          <span class="material-symbols-outlined">badge</span>
+          <span>Add Cashier</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="showCompanySettings(); setActiveMenu(this)">
+          <span class="material-symbols-outlined">manage_accounts</span>
+          <span>Company Settings</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <main id="main-content">
+   <!-- Dashboard -->
+<!-- Dashboard -->
+<!-- Replace the existing dashboard section with this enhanced version -->
+<section id="dashboard-section">
+  <h2 class="section-title">Dashboard</h2>
+  
+  <!-- Summary Cards -->
+  <div class="row mt-4 g-4">
+    <!-- Total Products Card -->
+    <div class="col-xl-3 col-md-6">
+      <div class="card p-4 dashboard-card h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="text-primary">Total Products</h5>
+            <h2 class="mt-2 mb-0" id="total-products-count">0</h2>
+            <p class="text-muted mb-0">Active Products</p>
+          </div>
+          <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+            <i class="fas fa-boxes text-primary fs-4"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <small class="text-success">
+            <i class="fas fa-arrow-up me-1"></i>
+            <span id="products-trend">0</span> this month
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Stock Value Card -->
+    <div class="col-xl-3 col-md-6">
+      <div class="card p-4 dashboard-card h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="text-success">Stock Value</h5>
+            <h2 class="mt-2 mb-0" id="total-stock-value">₹0</h2>
+            <p class="text-muted mb-0">Current Inventory Value</p>
+          </div>
+          <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+            <i class="fas fa-rupee-sign text-success fs-4"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <small class="text-muted" id="stock-items-count">0 items in stock</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Low Stock Alert Card -->
+    <div class="col-xl-3 col-md-6">
+      <div class="card p-4 dashboard-card h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="text-warning">Low Stock</h5>
+            <h2 class="mt-2 mb-0" id="low-stock-count">0</h2>
+            <p class="text-muted mb-0">Need Reordering</p>
+          </div>
+          <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+            <i class="fas fa-exclamation-triangle text-warning fs-4"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <small class="text-warning" id="critical-stock-count">0 critical</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Sales Card -->
+    <div class="col-xl-3 col-md-6">
+      <div class="card p-4 dashboard-card h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="text-info">Total Sales</h5>
+            <h2 class="mt-2 mb-0" id="total-sales-value">₹0</h2>
+            <p class="text-muted mb-0">All Time Revenue</p>
+          </div>
+          <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+            <i class="fas fa-chart-line text-info fs-4"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <small class="text-success">
+            <i class="fas fa-shopping-cart me-1"></i>
+            <span id="total-orders-count">0</span> orders
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts and Detailed Analytics -->
+  <div class="row mt-4 g-4">
+    <!-- Stock Distribution Chart -->
+    <div class="col-xl-6">
+      <div class="card h-100">
+        <div class="card-header bg-transparent border-bottom-0">
+          <h5 class="card-title mb-0">Stock Distribution</h5>
+          <p class="text-muted mb-0 small">Current inventory levels</p>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-4">
+              <div class="border-end">
+                <h3 class="text-success mb-1" id="in-stock-count">0</h3>
+                <small class="text-muted">In Stock</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="border-end">
+                <h3 class="text-warning mb-1" id="low-stock-items">0</h3>
+                <small class="text-muted">Low Stock</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div>
+                <h3 class="text-danger mb-1" id="out-of-stock-count">0</h3>
+                <small class="text-muted">Out of Stock</small>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="progress" style="height: 12px;">
+              <div class="progress-bar bg-success" id="in-stock-bar" style="width: 0%"></div>
+              <div class="progress-bar bg-warning" id="low-stock-bar" style="width: 0%"></div>
+              <div class="progress-bar bg-danger" id="out-of-stock-bar" style="width: 0%"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-2 small text-muted">
+              <span>In Stock</span>
+              <span>Low Stock</span>
+              <span>Out of Stock</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="col-xl-6">
+      <div class="card h-100">
+        <div class="card-header bg-transparent border-bottom-0">
+          <h5 class="card-title mb-0">Top Products</h5>
+          <p class="text-muted mb-0 small">By stock value</p>
+        </div>
+        <div class="card-body">
+          <div id="top-products-list">
+            <!-- Top products will be populated here -->
+            <div class="text-center py-4">
+              <i class="fas fa-box-open text-muted fs-1"></i>
+              <p class="text-muted mt-2">No products data available</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity and Quick Stats -->
+  <div class="row mt-4 g-4">
+    <!-- Recent Sales Activity -->
+    <div class="col-xl-8">
+      <div class="card h-100">
+        <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="card-title mb-0">Recent Sales Activity</h5>
+            <p class="text-muted mb-0 small">Latest purchases and stock updates</p>
+          </div>
+          <button class="btn btn-sm btn-outline-primary" onclick="refreshDashboard()">
+            <i class="fas fa-sync-alt me-1"></i> Refresh
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Type</th>
+                  <th>Quantity</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recent-activity-table">
+                <!-- Recent activity will be populated here -->
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    No recent activity
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="col-xl-4">
+      <div class="card h-100">
+        <div class="card-header bg-transparent border-bottom-0">
+          <h5 class="card-title mb-0">Quick Stats</h5>
+          <p class="text-muted mb-0 small">Inventory overview</p>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+              <div>
+                <i class="fas fa-tags text-primary me-2"></i>
+                <span>Categories</span>
+              </div>
+              <span class="badge bg-primary rounded-pill" id="categories-count">0</span>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+              <div>
+                <i class="fas fa-warehouse text-success me-2"></i>
+                <span>Avg. Stock Value</span>
+              </div>
+              <span class="badge bg-success rounded-pill" id="avg-stock-value">₹0</span>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+              <div>
+                <i class="fas fa-chart-pie text-info me-2"></i>
+                <span>Stock Turnover</span>
+              </div>
+              <span class="badge bg-info rounded-pill" id="stock-turnover">0%</span>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+              <div>
+                <i class="fas fa-clock text-warning me-2"></i>
+                <span>Last Updated</span>
+              </div>
+              <small class="text-muted" id="last-updated">Just now</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <!-- Products -->
+    <section id="products-section" class="container-fluid mb-1 d-none">
+      <!-- Hidden Product Barcodes Section -->
+      <div id="printArea" style="display: none;">
+        <div class="barcode-grid">
+          <div th:each="product : ${products}" class="barcode-item">
+            <!-- Barcode Image -->
+            <img th:if="${product.barcodeImagePath != null}"
+                 th:src="@{'/images/barcodes/' + ${#strings.substring(product.barcodeImagePath, product.barcodeImagePath.lastIndexOf('/') + 1)}}" 
+                 alt="barcode" />
+            <!-- Barcode Value -->
+            <p th:text="${product.barcode}"></p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title mb-0">Products</h2>
+        <div class="d-flex gap-2">
+          <a th:href="@{/products/create}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i> Add Product
+          </a>
+          <button type="button" class="btn print-btn" onclick="printBarcodes()">
+            <i class="fas fa-print me-2"></i> Print Barcodes
+          </button>
+        </div>
+      </div>
+
+      <div class="row" th:if="${not #lists.isEmpty(products)}">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead>
+                    <tr>
+                      <th width="15%">Product</th>
+                      <th width="25%">Details</th>
+                      <th width="20%">Brand & Category</th>
+                      <th width="15%">Price</th>
+                      <th width="15%">Created</th>
+                      <th width="10%" class="text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="product : ${products}" class="product-card">
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <img th:if="${product.imageFileName != null}" 
+                               th:src="@{'/images/' + ${product.imageFileName}}" 
+                               class="product-image me-3" 
+                               th:alt="${product.name}"/>
+                          <img th:if="${product.imageFileName == null}" 
+                               src="https://via.placeholder.com/150" 
+                               class="product-image me-3" 
+                               alt="No Image"/>
+                          <div>
+                            <h6 class="mb-0 fw-bold" th:text="${product.name}"></h6>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <p class="mb-1 text-muted small" th:text="${product.description} ?: 'No description'"></p>
+                      </td>
+                      <td>
+                        <span class="badge bg-light text-dark me-1" th:text="${product.brand}"></span>
+                        <span class="badge bg-light text-dark" th:text="${product.category}"></span>
+                      </td>
+                      <td>
+                        <h6 class="mb-0 text-primary">₹ <span th:text="${product.price}"></span></h6>
+                      </td>
+                      <td>
+                        <small class="text-muted" th:text="${#dates.format(product.createdAt, 'dd-MM-yyyy')}"></small>
+                      </td>
+                      <td class="text-center product-actions">
+                        <a th:href="@{/products/edit(id=${product.id})}" class="btn btn-sm btn-outline-primary me-1" title="Edit">
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="#"
+                           class="btn btn-sm btn-outline-danger delete-btn"
+                           data-bs-toggle="modal"
+                           data-bs-target="#deleteModal"
+                           th:data-delete-url="@{/products/delete(id=${product.id})}"
+                           title="Delete">
+                          <i class="fas fa-trash"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" th:if="${#lists.isEmpty(products)}">
+        <i class="fas fa-box-open"></i>
+        <h4 class="mt-3">No products found</h4>
+        <p class="text-muted">Get started by adding your first product</p>
+        <a th:href="@{/products/create}" class="btn btn-primary mt-2">
+          <i class="fas fa-plus me-2"></i> Add Product
+        </a>
+      </div>
+
+      <!-- Pagination -->
+      <nav aria-label="Page navigation" class="mt-4" th:if="${products instanceof T(org.springframework.data.domain.Page)}">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" th:classappend="${products.hasPrevious()} ? '' : 'disabled'">
+            <a class="page-link" th:href="@{|?page=${products.number - 1}|}">
+              <i class="fas fa-chevron-left me-1"></i> Previous
+            </a>
+          </li>
+
+          <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, products.totalPages - 1)}"
+              th:classappend="${pageNum == products.number} ? 'active'">
+            <a class="page-link" th:href="@{|?page=${pageNum}|}" th:text="${pageNum + 1}"></a>
+          </li>
+
+          <li class="page-item" th:classappend="${products.hasNext()} ? '' : 'disabled'">
+            <a class="page-link" th:href="@{|?page=${products.number + 1}|}">
+              Next <i class="fas fa-chevron-right ms-1"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </section>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex align-items-center">
+              <div class="bg-danger bg-opacity-10 p-3 rounded-circle me-3">
+                <i class="fas fa-exclamation-triangle text-danger"></i>
+              </div>
+              <div>
+                <h6 class="mb-1">Are you sure you want to delete this product?</h6>
+                <p class="text-muted mb-0">This action cannot be undone.</p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <a id="confirmDeleteBtn" href="#" class="btn btn-danger">Delete</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================= Manage Sales ========================= -->
+    <section id="manage-purchase-section" class="d-none">
+     <div th:fragment="manage-purchase-section-content">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h2 class="section-title mb-1">Manage Sales</h2>
+              <p class="text-muted mb-0">Manage your units and sales</p>
+            </div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitsModal">
+              <i class="fas fa-plus-circle me-2"></i> Add New Unit
+            </button>
+          </div>
+
+      
+          <!-- Search and Filters -->
+          <div class="filter-section">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <div class="search-container">
+                  <i class="fas fa-search search-icon"></i>
+                  <input type="search" id="searchInput" class="form-control"
+                         placeholder="Search products..." onkeyup="filterTable()">
+                </div>
+              </div>
+              <div class="col-md-4 text-end">
+                <button class="filter-toggle" onclick="toggleFilter()">
+                  <i class="fas fa-filter me-1"></i> Filters
+                </button>
+              </div>
+            </div>
+            
+            <div id="filterSection" style="display:none" class="mt-3">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="quantityFilter" class="form-label">Filter by Quantity Range</label>
+                  <select id="quantityFilter" class="form-select" onchange="filterTable()">
+                    <option value="">All</option>
+                    <option value="0-10">0 - 10</option>
+                    <option value="10-20">10 - 20</option>
+                    <option value="20-30">20 - 30</option>
+                    <option value="30+">30+</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="dateFilter" class="form-label">Filter by Date</label>
+                  <input type="date" id="dateFilter" class="form-control" onchange="filterTable()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Purchases Table -->
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Product Name</th>
+                  <th>No of Products</th>
+                  <th>Created On</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="purchaseTableBody">
+                <tr th:each="purchase : ${purchases}">
+                  <td th:text="${purchase.product.name}"></td>
+                  <td>
+                    <span class="badge bg-primary" th:text="${purchase.quantity}"></span>
+                  </td>
+                  <td th:text="${#temporals.format(purchase.createdAt, 'dd-MM-yyyy')}"></td>
+                  <td>
+                     <button type="button" th:onclick="'deletePurchase(' + ${purchase.id} + ')'">
+  <i class="fas fa-trash"></i>
+</button>
+
+                  </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(purchases)}">
+                  <td colspan="4" class="text-center py-5">
+                    <div class="empty-state">
+                      <i class="fas fa-clipboard-list"></i>
+                      <h5 class="mt-3">No purchases recorded</h5>
+                      <p class="text-muted">Add your first purchase to get started</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      </div>
+         
+      
+      
+    </section>
+    
+    <div id="message-container" style="margin-bottom: 10px;"></div>
+<!-- Add Units Modal -->
+          <div class="modal fade" id="addUnitsModal" tabindex="-1" aria-labelledby="addUnitsModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="addUnitsModalLabel">Add New Units</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <!-- Success and Error Messages -->
+                  <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${successMessage}"></span>
+                  </div>
+                  <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span th:text="${errorMessage}"></span>
+                  </div>
+
+                  <!-- Add Purchase Form 
+                 <form th:action="@{/manage-purchase}" method="post">
+                    <div class="mb-3">
+                      <label for="product" class="form-label">Select Product</label>
+                      <select class="form-select" name="productId" id="product" required>
+                        <option value="">Choose a product...</option>
+                        <option th:each="product : ${products}" 
+                                th:value="${product.id}" 
+                                th:text="${product.name}"></option>
+                      </select>
+                      <div th:if="${#lists.isEmpty(products)}" class="text-danger mt-2">
+                        <i class="fas fa-info-circle me-1"></i> No products available.
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="quantity" class="form-label">Quantity</label>
+                      <input type="number" class="form-control" id="quantity" name="quantity" required min="1" />
+                    </div>
+                    <div class="d-grid">
+                      <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i> Add Product
+                      </button>
+                    </div>
+                  </form>-->
+                  
+                  <form id="addPurchaseForm" th:action="@{/manage-purchase}" method="post">
+  <div class="mb-3">
+    <label for="product" class="form-label">Select Product</label>
+    <select class="form-select" name="productId" id="product" required>
+      <option value="">Choose a product...</option>
+      <option th:each="product : ${products}" 
+              th:value="${product.id}" 
+              th:text="${product.name}"></option>
+    </select>
+    <div th:if="${#lists.isEmpty(products)}" class="text-danger mt-2">
+      <i class="fas fa-info-circle me-1"></i> No products available.
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="quantity" class="form-label">Quantity</label>
+    <input type="number" class="form-control" id="quantity" name="quantity" required min="1" />
+  </div>
+
+  <div class="d-grid">
+    <button type="submit" class="btn btn-success">
+      <i class="fas fa-plus me-2"></i> Add Product
+    </button>
+  </div>
+</form>
+                  
+                  
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+
+    <!-- ========================= Company Settings ========================= -->
+    <section id="company-settings-section" class="d-none">
+      <!-- Profile / Logo -->
+      <div class="card shadow-sm mb-4">
+        <div class="profile-head"></div>
+        <div class="card-body text-center pt-0">
+          <div class="company-logo-container mx-auto mb-3">
+            <img src="default-logo.png" id="current-logo" alt="Company Logo" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+            <div class="logo-upload">
+              <label for="company-logo-upload" class="mb-0">
+                <i class="fas fa-camera"></i>
+              </label>
+              <input type="file" id="company-logo-upload" name="logo" accept="image/*" onchange="previewLogo(event)" style="display:none;">
+            </div>
+          </div>
+          <h3 class="mt-2" id="company-name-display">Company Name</h3>
+          <p class="text-muted">Update your company information</p>
+        </div>
+      </div>
+
+      <!-- Main Form -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form id="company-form">
+            <!-- Company Info -->
+            <h5 class="mb-3 text-primary d-flex align-items-center">
+              <i class="fas fa-building me-2"></i> Company Information
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="company-name" class="form-label">Company Name</label>
+                <input type="text" id="company-name" name="companyName" class="form-control" placeholder="Enter company name" oninput="updateCompanyNameDisplay()">
+              </div>
+              <div class="col-md-6">
+                <label for="company-email" class="form-label">Email</label>
+                <input type="email" id="company-email" name="companyEmail" class="form-control" placeholder="Enter email">
+              </div>
+              <div class="col-md-6">
+                <label for="company-phone" class="form-label">Phone</label>
+                <input type="text" id="company-phone" name="companyPhone" class="form-control" placeholder="Enter phone number">
+              </div>
+            </div>
+
+            <!-- Address Section -->
+            <h5 class="mb-3 text-primary d-flex align-items-center">
+              <i class="fas fa-map-marker-alt me-2"></i> Company Address
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="company-street" class="form-label">Street</label>
+                <input type="text" id="company-street" class="form-control" placeholder="Enter street">
+              </div>
+              <div class="col-md-6">
+                <label for="company-city" class="form-label">City</label>
+                <input type="text" id="company-city" class="form-control" placeholder="Enter city">
+              </div>
+              <div class="col-md-6">
+                <label for="company-state" class="form-label">State</label>
+                <input type="text" id="company-state" class="form-control" placeholder="Enter state">
+              </div>
+              <div class="col-md-6">
+                <label for="company-country" class="form-label">Country</label>
+                <input type="text" id="company-country" class="form-control" placeholder="Enter country">
+              </div>
+            </div>
+
+            <!-- Tax Info -->
+            <h5 class="mb-3 text-primary d-flex align-items-center">
+              <i class="fas fa-receipt me-2"></i> Tax Information
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="company-gst" class="form-label">GST Number</label>
+                <input type="text" id="company-gst" name="gstNumber" class="form-control" placeholder="Enter GST Number" maxlength="15">
+              </div>
+              <div class="col-md-6">
+                <label for="company-pan" class="form-label">PAN Number</label>
+                <input type="text" id="company-pan" name="panNumber" class="form-control" placeholder="Enter PAN Number" maxlength="10">
+              </div>
+            </div>
+
+            <!-- Bank Details -->
+            <h5 class="mb-3 text-primary d-flex align-items-center">
+              <i class="fas fa-university me-2"></i> Bank Details
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="bank-name" class="form-label">Bank Name</label>
+                <input type="text" id="bank-name" name="bankName" class="form-control" placeholder="Enter bank name">
+              </div>
+              <div class="col-md-6">
+                <label for="bank-branch" class="form-label">Branch</label>
+                <input type="text" id="bank-branch" name="bankBranch" class="form-control" placeholder="Enter branch">
+              </div>
+              <div class="col-md-6">
+                <label for="account-number" class="form-label">Account Number</label>
+                <input type="text" id="account-number" name="accountNumber" class="form-control" placeholder="Enter account number">
+              </div>
+              <div class="col-md-6">
+                <label for="ifsc-code" class="form-label">IFSC Code</label>
+                <input type="text" id="ifsc-code" name="ifscCode" class="form-control" placeholder="Enter IFSC code" maxlength="11">
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="mt-4 text-end">
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="fas fa-save me-2"></i> Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= Add Cashier ========================= -->
+    <section id="add-cashier-section" class="d-none">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="section-title mb-4">Add Cashier</h2>
+          <form id="cashier-form">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="cashier-name" class="form-label">Full Name</label>
+                <input type="text" id="cashier-name" class="form-control" placeholder="Enter full name">
+              </div>
+              <div class="col-md-6">
+                <label for="cashier-email" class="form-label">Email</label>
+                <input type="email" id="cashier-email" class="form-control" placeholder="Enter email">
+              </div>
+              <div class="col-md-6">
+                <label for="cashier-phone" class="form-label">Phone</label>
+                <input type="text" id="cashier-phone" class="form-control" placeholder="Enter phone number">
+              </div>
+              <div class="col-md-6">
+                <label for="cashier-username" class="form-label">Username</label>
+                <input type="text" id="cashier-username" class="form-control" placeholder="Enter username">
+              </div>
+              <div class="col-md-6">
+                <label for="cashier-password" class="form-label">Password</label>
+                <input type="password" id="cashier-password" class="form-control" placeholder="Enter password">
+              </div>
+              <div class="col-md-6">
+                <label for="cashier-role" class="form-label">Role</label>
+                <select id="cashier-role" class="form-select">
+                  <option selected disabled>Select role</option>
+                  <option value="cashier">Cashier</option>
+                  <option value="manager">Manager</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-4 text-end">
+              <button type="submit" class="btn btn-success px-4">
+                <i class="fas fa-user-plus me-2"></i> Add Cashier
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <script>
+  
+//Add this JavaScript code to your existing script section
+
+//Dashboard data management
+let dashboardData = {
+   products: [],
+   purchases: [],
+   lastUpdated: new Date(),
+   stockLevels: {
+       inStock: 0,
+       lowStock: 0,
+       outOfStock: 0
+   }
+};
+
+//Initialize dashboard when page loads
+document.addEventListener('DOMContentLoaded', function() {
+   initializeDashboard();
+   
+   // Refresh dashboard data when navigating to dashboard
+   const dashboardLink = document.querySelector('.sidebar-menu .nav-item:first-child .nav-link');
+   if (dashboardLink) {
+       dashboardLink.addEventListener('click', function() {
+           setTimeout(initializeDashboard, 100);
+       });
+   }
+});
+
+function initializeDashboard() {
+   console.log('Initializing dashboard...');
+   extractProductsData();
+   extractPurchasesData();
+   updateDashboardMetrics();
+}
+
+function extractProductsData() {
+   // Extract products from the products table
+   const productRows = document.querySelectorAll('#products-section tbody tr');
+   dashboardData.products = [];
+   
+   productRows.forEach(row => {
+       const product = {
+           name: row.querySelector('h6')?.textContent?.trim() || 'Unknown Product',
+           price: parseFloat(row.querySelector('.text-primary span')?.textContent?.replace(/[^0-9.]/g, '') || 0),
+           brand: row.querySelector('.badge.bg-light')?.textContent?.trim() || 'No Brand',
+           category: row.querySelectorAll('.badge.bg-light')[1]?.textContent?.trim() || 'Uncategorized',
+           description: row.querySelector('.text-muted.small')?.textContent?.trim() || 'No description',
+           createdAt: row.querySelector('small.text-muted')?.textContent?.trim() || '',
+           image: row.querySelector('img')?.src || ''
+       };
+       
+       dashboardData.products.push(product);
+   });
+   
+   console.log(`Extracted ${dashboardData.products.length} products`);
+}
+
+function extractPurchasesData() {
+   // Extract purchases from the manage sales table
+   const purchaseRows = document.querySelectorAll('#manage-purchase-section tbody tr');
+   dashboardData.purchases = [];
+   
+   purchaseRows.forEach(row => {
+       if (row.querySelector('td:first-child')?.textContent?.trim() !== 'No purchases recorded') {
+           const purchase = {
+               productName: row.querySelector('td:first-child')?.textContent?.trim() || 'Unknown Product',
+               quantity: parseInt(row.querySelector('.badge')?.textContent?.trim() || 0),
+               createdAt: row.querySelector('td:nth-child(3)')?.textContent?.trim() || '',
+               id: row.querySelector('button')?.getAttribute('onclick')?.match(/\d+/)?.[0] || ''
+           };
+           
+           dashboardData.purchases.push(purchase);
+       }
+   });
+   
+   console.log(`Extracted ${dashboardData.purchases.length} purchases`);
+}
+
+function updateDashboardMetrics() {
+   updateSummaryCards();
+   updateStockDistribution();
+   updateTopProducts();
+   updateRecentActivity();
+   updateQuickStats();
+   
+   dashboardData.lastUpdated = new Date();
+   document.getElementById('last-updated').textContent = 'Just now';
+}
+
+function updateSummaryCards() {
+   const productsCount = dashboardData.products.length;
+   const purchasesCount = dashboardData.purchases.length;
+   
+   // Total Products
+   document.getElementById('total-products-count').textContent = productsCount;
+   document.getElementById('products-trend').textContent = `+${Math.floor(productsCount * 0.1)}`;
+   
+   // Stock Value (estimated)
+   const totalStockValue = dashboardData.products.reduce((sum, product) => sum + product.price, 0) * 10;
+   document.getElementById('total-stock-value').textContent = `₹${totalStockValue.toLocaleString()}`;
+   
+   // Low Stock (estimated based on purchases)
+   const lowStockCount = Math.max(0, Math.floor(productsCount * 0.2));
+   document.getElementById('low-stock-count').textContent = lowStockCount;
+   document.getElementById('critical-stock-count').textContent = `${Math.floor(lowStockCount * 0.3)} critical`;
+   
+   // Total Sales (estimated)
+   const totalSalesValue = dashboardData.purchases.reduce((sum, purchase) => {
+       const product = dashboardData.products.find(p => p.name === purchase.productName);
+       return sum + (product?.price || 0) * purchase.quantity;
+   }, 0);
+   document.getElementById('total-sales-value').textContent = `₹${totalSalesValue.toLocaleString()}`;
+   document.getElementById('total-orders-count').textContent = purchasesCount;
+   
+   // Stock Items Count
+   const totalStockItems = dashboardData.purchases.reduce((sum, purchase) => sum + purchase.quantity, 0);
+   document.getElementById('stock-items-count').textContent = `${totalStockItems} items in stock`;
+}
+
+function updateStockDistribution() {
+   const productsCount = dashboardData.products.length;
+   
+   // Calculate stock levels (simulated)
+   const inStockCount = Math.floor(productsCount * 0.6);
+   const lowStockCount = Math.floor(productsCount * 0.2);
+   const outOfStockCount = Math.floor(productsCount * 0.2);
+   
+   document.getElementById('in-stock-count').textContent = inStockCount;
+   document.getElementById('low-stock-items').textContent = lowStockCount;
+   document.getElementById('out-of-stock-count').textContent = outOfStockCount;
+   
+   // Update progress bars
+   const total = inStockCount + lowStockCount + outOfStockCount;
+   document.getElementById('in-stock-bar').style.width = `${(inStockCount / total) * 100}%`;
+   document.getElementById('low-stock-bar').style.width = `${(lowStockCount / total) * 100}%`;
+   document.getElementById('out-of-stock-bar').style.width = `${(outOfStockCount / total) * 100}%`;
+}
+
+function updateTopProducts() {
+   const topProductsList = document.getElementById('top-products-list');
+   
+   if (dashboardData.products.length === 0) {
+       topProductsList.innerHTML = `
+           <div class="text-center py-4">
+               <i class="fas fa-box-open text-muted fs-1"></i>
+               <p class="text-muted mt-2">No products data available</p>
+           </div>
+       `;
+       return;
+   }
+   
+   // Get top 5 products by price (as a proxy for value)
+   const topProducts = [...dashboardData.products]
+       .sort((a, b) => b.price - a.price)
+       .slice(0, 5);
+   
+   let html = '';
+   topProducts.forEach((product, index) => {
+       const stockValue = (product.price * 10).toLocaleString();
+       html += `
+           <div class="d-flex align-items-center mb-3 ${index < topProducts.length - 1 ? 'border-bottom pb-3' : ''}">
+               <div class="flex-shrink-0">
+                   <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                       <i class="fas fa-box text-primary"></i>
+                   </div>
+               </div>
+               <div class="flex-grow-1 ms-3">
+                   <h6 class="mb-0">${product.name}</h6>
+                   <small class="text-muted">${product.category}</small>
+               </div>
+               <div class="flex-shrink-0">
+                   <span class="fw-bold text-success">₹${stockValue}</span>
+               </div>
+           </div>
+       `;
+   });
+   
+   topProductsList.innerHTML = html;
+}
+
+function updateRecentActivity() {
+   const activityTable = document.getElementById('recent-activity-table');
+   
+   if (dashboardData.purchases.length === 0) {
+       activityTable.innerHTML = `
+           <tr>
+               <td colspan="5" class="text-center py-4 text-muted">
+                   <i class="fas fa-clipboard-list me-2"></i>
+                   No recent activity
+               </td>
+           </tr>
+       `;
+       return;
+   }
+   
+   // Get recent purchases (last 5)
+   const recentPurchases = [...dashboardData.purchases].slice(-5).reverse();
+   
+   let html = '';
+   recentPurchases.forEach(purchase => {
+       const product = dashboardData.products.find(p => p.name === purchase.productName);
+       const status = purchase.quantity > 10 ? 'High' : purchase.quantity > 5 ? 'Medium' : 'Low';
+       const statusClass = purchase.quantity > 10 ? 'success' : purchase.quantity > 5 ? 'warning' : 'danger';
+       
+       html += `
+           <tr>
+               <td>
+                   <div class="d-flex align-items-center">
+                       <i class="fas fa-box text-primary me-2"></i>
+                       <span>${purchase.productName}</span>
+                   </div>
+               </td>
+               <td>Stock Update</td>
+               <td>${purchase.quantity} units</td>
+               <td>${purchase.createdAt}</td>
+               <td><span class="badge bg-${statusClass}">${status}</span></td>
+           </tr>
+       `;
+   });
+   
+   activityTable.innerHTML = html;
+}
+
+function updateQuickStats() {
+   const productsCount = dashboardData.products.length;
+   const purchasesCount = dashboardData.purchases.length;
+   
+   // Categories count (estimated)
+   const categories = [...new Set(dashboardData.products.map(p => p.category))];
+   document.getElementById('categories-count').textContent = categories.length;
+   
+   // Average stock value
+   const avgStockValue = dashboardData.products.length > 0 
+       ? dashboardData.products.reduce((sum, p) => sum + p.price, 0) / dashboardData.products.length * 10
+       : 0;
+   document.getElementById('avg-stock-value').textContent = `₹${Math.round(avgStockValue).toLocaleString()}`;
+   
+   // Stock turnover (simulated)
+   const stockTurnover = purchasesCount > 0 ? Math.min(100, Math.floor((purchasesCount / productsCount) * 100)) : 0;
+   document.getElementById('stock-turnover').textContent = `${stockTurnover}%`;
+}
+
+//Refresh dashboard function
+function refreshDashboard() {
+   console.log('Refreshing dashboard...');
+   
+   // Show loading state
+   const refreshBtn = document.querySelector('button[onclick="refreshDashboard()"]');
+   const originalHtml = refreshBtn.innerHTML;
+   refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Refreshing...';
+   refreshBtn.disabled = true;
+   
+   // Re-extract data and update metrics
+   setTimeout(() => {
+       extractProductsData();
+       extractPurchasesData();
+       updateDashboardMetrics();
+       
+       // Restore button state
+       refreshBtn.innerHTML = originalHtml;
+       refreshBtn.disabled = false;
+       
+       // Show success feedback
+       showDashboardNotification('Dashboard updated successfully!', 'success');
+   }, 1000);
+}
+
+function showDashboardNotification(message, type = 'info') {
+   // Remove existing notification
+   const existingNotification = document.getElementById('dashboard-notification');
+   if (existingNotification) {
+       existingNotification.remove();
+   }
+   
+   // Create new notification
+   const notification = document.createElement('div');
+   notification.id = 'dashboard-notification';
+   notification.className = `alert alert-${type} alert-dismissible fade show`;
+   notification.innerHTML = `
+       ${message}
+       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+   `;
+   
+   // Insert after the section title
+   const sectionTitle = document.querySelector('#dashboard-section .section-title');
+   sectionTitle.parentNode.insertBefore(notification, sectionTitle.nextSibling);
+   
+   // Auto remove after 3 seconds
+   setTimeout(() => {
+       if (notification.parentNode) {
+           notification.remove();
+       }
+   }, 3000);
+}
+
+//Auto-refresh dashboard when other sections are updated
+function monitorDataChanges() {
+   // Observe changes in products and purchases sections
+   const observer = new MutationObserver(function(mutations) {
+       mutations.forEach(function(mutation) {
+           if (mutation.type === 'childList' || mutation.type === 'subtree') {
+               // Check if we're on the dashboard
+               const dashboardSection = document.getElementById('dashboard-section');
+               if (dashboardSection && !dashboardSection.classList.contains('d-none')) {
+                   setTimeout(initializeDashboard, 500);
+               }
+           }
+       });
+   });
+   
+   // Observe products section
+   const productsSection = document.getElementById('products-section');
+   if (productsSection) {
+       observer.observe(productsSection, { childList: true, subtree: true });
+   }
+   
+   // Observe manage purchases section
+   const purchasesSection = document.getElementById('manage-purchase-section');
+   if (purchasesSection) {
+       observer.observe(purchasesSection, { childList: true, subtree: true });
+   }
+}
+
+//Start monitoring when page loads
+setTimeout(monitorDataChanges, 2000);
+  
+  
+  function deletePurchase(id) {
+	    if (!confirm("Are you sure you want to delete this purchase?")) return;
+
+	    fetch("/purchase/delete?id=" + id, { method: "POST" })
+	        .then(() => location.reload()); // reloads page after deletion
+	}
+
+  
+  const form = document.getElementById('addPurchaseForm');
+  const modalEl = document.getElementById('addUnitsModal');
+
+//Reset form whenever the modal closes
+modalEl.addEventListener('hidden.bs.modal', function () {
+   form.reset();
+});
+
+  form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+      .then(resp => resp.text())
+      .then(html => {
+          // Replace the fragment content with updated table + messages
+          const section = document.getElementById('manage-purchase-section');
+          section.innerHTML = html;
+          section.classList.remove('d-none');
+
+          // Close the modal
+          const modalEl = document.getElementById('addUnitsModal');
+          const modal = bootstrap.Modal.getInstance(modalEl);
+          if (modal) modal.hide();
+          
+          form.reset();
+      })
+      .catch(err => console.error(err));
+  });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const deleteModalEl = document.getElementById('deleteModal');
+      const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+      if (deleteModalEl) {
+        deleteModalEl.addEventListener('show.bs.modal', event => {
+          const button = event.relatedTarget;
+          const deleteUrl = button.dataset.deleteUrl;
+          confirmBtn.href = deleteUrl;
+        });
+      }
+    });
+
+    function updateCompanyNameDisplay() {
+      const inputEl = document.getElementById('company-name');
+      const displayEl = document.getElementById('company-name-display');
+
+      if (inputEl && displayEl) {
+        displayEl.textContent = inputEl.value || 'Company Name';
+      }
+    }
+
+    function printBarcodes() {
+      document.getElementById("printArea").style.display = "block";
+      window.print();
+      document.getElementById("printArea").style.display = "none";
+    }
+
+    /* ---------- Manage Sales Functions ---------- */
+    function loadManagePurchase(el) {
+  console.log('Loading Manage Sales section...');
+  setActiveMenu(el);
+  showManagePurchase();
+
+  // 🔽 Fetch Manage Sales content dynamically
+  fetch('/manage-purchase', {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(resp => resp.text())
+  .then(html => {
+      const section = document.getElementById('manage-purchase-section');
+      if (section) {
+          section.innerHTML = html;
+          console.log('Manage Sales section loaded successfully');
+      } else {
+          console.error('manage-purchase-section not found in DOM');
+      }
+  })
+  .catch(err => console.error('Error loading Manage Sales section:', err));
+}
+
+
+    function showManagePurchase() {
+      console.log('Showing Manage Sales section...');
+      hideAllSections();
+      const el = document.getElementById('manage-purchase-section');
+      if (el) {
+        console.log('Section found, removing d-none class');
+        el.classList.remove('d-none');
+        // Add a small delay to ensure the section is visible
+        setTimeout(() => {
+          el.classList.add('fade-in');
+        }, 10);
+      } else {
+        console.error('Manage purchase section not found in DOM');
+      }
+    }
+
+    function toggleFilter() {
+      const filterSection = document.getElementById("filterSection");
+      if (filterSection) {
+        if (filterSection.style.display === "none" || !filterSection.style.display) {
+          filterSection.style.display = "block";
+        } else {
+          filterSection.style.display = "none";
+        }
+      }
+    }
+
+    /* ---------- Filter Functions ---------- */
+    function filterTable() {
+      const searchFilter = document.getElementById("searchInput")?.value.toLowerCase() || '';
+      const quantityFilter = document.getElementById("quantityFilter")?.value || '';
+      const dateFilter = document.getElementById("dateFilter")?.value || '';
+      const rows = document.querySelectorAll("#purchaseTableBody tr");
+
+      console.log('Filtering table:', { searchFilter, quantityFilter, dateFilter });
+
+      rows.forEach(row => {
+        const productNameCell = row.querySelector("td:first-child");
+        const productName = productNameCell?.textContent.trim().toLowerCase() || '';
+
+        const quantityCell = row.querySelector("td:nth-child(2)");
+        const quantity = parseInt(quantityCell?.textContent.trim(), 10) || 0;
+
+        const dateCell = row.querySelector("td:nth-child(3)");
+        const rowDate = dateCell?.textContent.trim().split(" ")[0] || '';
+
+        const matchesProductName = productName.includes(searchFilter);
+        let matchesQuantity = true;
+
+        if (quantityFilter) {
+          if (quantityFilter === "30+") {
+            matchesQuantity = quantity >= 30;
+          } else if (quantityFilter === "0-10") {
+            matchesQuantity = quantity >= 0 && quantity <= 10;
+          } else if (quantityFilter === "10-20") {
+            matchesQuantity = quantity >= 10 && quantity <= 20;
+          } else if (quantityFilter === "20-30") {
+            matchesQuantity = quantity >= 20 && quantity <= 30;
+          }
+        }
+
+        const matchesDate = !dateFilter || rowDate === dateFilter;
+
+        row.style.display = matchesProductName && matchesQuantity && matchesDate ? "" : "none";
+      });
+    }
+
+    /* ---------- Navigation Functions ---------- */
+    function toggleSidebar() {
+      document.getElementById("sidebar")?.classList.toggle("active");
+    }
+
+    function hideAllSections() {
+      console.log('Hiding all sections...');
+      ['dashboard-section', 'products-section', 'add-cashier-section', 'company-settings-section', 'manage-purchase-section']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            console.log('Hiding section:', id);
+            el.classList.add('d-none');
+            el.classList.remove('fade-in');
+          }
+        });
+    }
+
+    function showDashboard() {
+      hideAllSections();
+      const el = document.getElementById('dashboard-section');
+      if (el) el.classList.remove('d-none');
+    }
+
+    function showProductsPage() {
+      hideAllSections();
+      const el = document.getElementById('products-section');
+      if (el) el.classList.remove('d-none');
+    }
+
+    function showAddCashier() {
+      hideAllSections();
+      const el = document.getElementById('add-cashier-section');
+      if (el) el.classList.remove('d-none');
+    }
+
+    async function showCompanySettings() {
+      hideAllSections();
+      const sectionEl = document.getElementById('company-settings-section');
+      if (sectionEl) sectionEl.classList.remove('d-none');
+
+      try {
+        const response = await fetch('/company-settings');
+        if (!response.ok) return;
+        const settings = await response.json();
+
+        // Company Info
+        const nameEl = document.getElementById('company-name');
+        const phoneEl = document.getElementById('company-phone');
+        const emailEl = document.getElementById('company-email');
+        const logoEl = document.getElementById('current-logo');
+
+        if (nameEl) nameEl.value = settings.companyName || '';
+        if (phoneEl) phoneEl.value = settings.companyPhone || '';
+        if (emailEl) emailEl.value = settings.companyEmail || '';
+
+        // Address split logic
+        const parts = (settings.companyAddress || '').split(',').map(p => p.trim());
+        document.getElementById('company-street').value   = parts[0] || '';
+        document.getElementById('company-city').value     = parts[1] || '';
+        document.getElementById('company-state').value    = parts[2] || '';
+        document.getElementById('company-country').value  = parts[3] || '';
+
+        if (logoEl) {
+          if (settings.logoPath) {
+            logoEl.src = settings.logoPath.startsWith('/') ? settings.logoPath : '/' + settings.logoPath;
+            logoEl.style.display = 'block';
+          } else {
+            logoEl.style.display = 'none';
+          }
+        }
+
+        // Tax Info
+        const gstEl = document.getElementById('company-gst');
+        const panEl = document.getElementById('company-pan');
+        if (gstEl) gstEl.value = settings.gstNumber || '';
+        if (panEl) panEl.value = settings.panNumber || '';
+
+        // Bank Details
+        const bankNameEl = document.getElementById('bank-name');
+        const bankBranchEl = document.getElementById('bank-branch');
+        const accountNumberEl = document.getElementById('account-number');
+        const ifscCodeEl = document.getElementById('ifsc-code');
+
+        if (settings.bankDetails) {
+          if (bankNameEl) bankNameEl.value = settings.bankDetails.bankName || '';
+          if (bankBranchEl) bankBranchEl.value = settings.bankDetails.bankBranch || '';
+          if (accountNumberEl) accountNumberEl.value = settings.bankDetails.accountNumber || '';
+          if (ifscCodeEl) ifscCodeEl.value = settings.bankDetails.ifscCode || '';
+        } else {
+          if (bankNameEl) bankNameEl.value = '';
+          if (bankBranchEl) bankBranchEl.value = '';
+          if (accountNumberEl) accountNumberEl.value = '';
+          if (ifscCodeEl) ifscCodeEl.value = '';
+        }
+
+      } catch (err) {
+        console.error('Error fetching company settings:', err);
+      }
+    }
+
+    /* ---------- Menu active state ---------- */
+    function setActiveMenu(element) {
+      if (!element) return;
+      document.querySelectorAll('.sidebar-menu .nav-item').forEach(li => li.classList.remove('active'));
+      const li = element.closest('.nav-item');
+      if (li) li.classList.add('active');
+    }
+
+    /* ---------- Logo preview ---------- */
+    function previewLogo(event) {
+      const file = event?.target?.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { 
+        alert('Only image files are allowed'); 
+        return; 
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const logo = document.getElementById('current-logo');
+        if (logo) { 
+          logo.src = e.target.result; 
+          logo.style.display = 'block'; 
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /* ---------- Form submissions ---------- */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Company form submit
+      const companyForm = document.getElementById('company-form');
+      if (companyForm) {
+        companyForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(companyForm);
+          
+          const logoInput = document.getElementById('company-logo-upload');
+          if (logoInput && logoInput.files.length > 0) {
+            formData.append('logo', logoInput.files[0]);
+          }
+          
+          const street  = document.getElementById('company-street').value;
+          const city    = document.getElementById('company-city').value;
+          const state   = document.getElementById('company-state').value;
+          const country = document.getElementById('company-country').value;
+
+          const companyAddress = [street, city, state, country].filter(Boolean).join(', ');
+          formData.set('companyAddress', companyAddress);
+          
+          try {
+            const res = await fetch('/company-settings/update', { method: 'POST', body: formData });
+            const data = await res.json().catch(()=>({ success: res.ok }));
+            let messageDiv = document.getElementById('update-message');
+            if (!messageDiv) {
+              messageDiv = document.createElement('div');
+              messageDiv.id = 'update-message';
+              companyForm.parentNode.insertBefore(messageDiv, companyForm.nextSibling);
+            }
+            if (data.success) {
+              messageDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Company settings updated successfully!</div>';
+            } else {
+              messageDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>' + (data.message || 'Error updating company settings') + '</div>';
+            }
+            setTimeout(()=> { if (messageDiv) messageDiv.innerHTML = ''; }, 4000);
+          } catch (err) {
+            console.error(err);
+            let messageDiv = document.getElementById('update-message');
+            if (!messageDiv) {
+              messageDiv = document.createElement('div');
+              messageDiv.id = 'update-message';
+              companyForm.parentNode.insertBefore(messageDiv, companyForm.nextSibling);
+            }
+            messageDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>An error occurred: ' + err.message + '</div>';
+            setTimeout(()=> { if (messageDiv) messageDiv.innerHTML = ''; }, 5000);
+          }
+        });
+      }
+
+      // Add Cashier form submit
+      const cashierForm = document.getElementById('cashier-form');
+      if (cashierForm) {
+        cashierForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const payload = {
+            name: document.getElementById('cashier-name')?.value || '',
+            email: document.getElementById('cashier-email')?.value || '',
+            phone: document.getElementById('cashier-phone')?.value || '',
+            username: document.getElementById('cashier-username')?.value || '',
+            password: document.getElementById('cashier-password')?.value || '',
+            role: document.getElementById('cashier-role')?.value || ''
+          };
+          try {
+            const res = await fetch('/admin/add-cashier', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            const data = await res.json().catch(()=>({}));
+            if (res.ok) {
+              alert(data.message || 'Cashier added.');
+              cashierForm.reset();
+            } else {
+              alert(data.message || 'Error adding cashier.');
+            }
+          } catch (err) {
+            console.error(err);
+            alert('Error adding cashier: ' + err.message);
+          }
+        });
+      }
+
+      // Ensure previewLogo is bound to input if present
+      const logoInput = document.getElementById('company-logo-upload');
+      if (logoInput) logoInput.addEventListener('change', previewLogo);
+
+      // Default view
+      hideAllSections();
+      showDashboard();
+    });
+
+    // Debug function - you can call this in browser console to test
+    function testManageSales() {
+      console.log('Testing Manage Sales section...');
+      
+      // Check if section exists
+      const section = document.getElementById('manage-purchase-section');
+      console.log('Section element:', section);
+      
+      // Check if it has d-none class
+      if (section) {
+        console.log('Has d-none class:', section.classList.contains('d-none'));
+        
+        // Try to show it directly
+        section.classList.remove('d-none');
+        console.log('Removed d-none class');
+      }
+      
+      // Check all sections
+      console.log('All sections:');
+      ['dashboard-section', 'products-section', 'manage-purchase-section'].forEach(id => {
+        const el = document.getElementById(id);
+        console.log(id, 'exists:', !!el, 'has d-none:', el?.classList.contains('d-none'));
+      });
+    }
+  </script>
+</body>
+</html>

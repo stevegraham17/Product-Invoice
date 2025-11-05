@@ -1,0 +1,538 @@
+<!-- Products Section-specific styles -->
+<style>
+    .products-table-container {
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow);
+    }
+
+    .stock-low {
+        color: var(--warning-color);
+        font-weight: 600;
+        background: rgba(248, 150, 30, 0.1);
+        padding: 4px 8px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .stock-out {
+        color: var(--danger-color);
+        font-weight: 600;
+        background: rgba(247, 37, 133, 0.1);
+        padding: 4px 8px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .stock-good {
+        color: var(--success-color);
+        font-weight: 500;
+        background: rgba(75, 181, 67, 0.1);
+        padding: 4px 8px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .product-price {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .product-id {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    .filter-panel {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 20px;
+        margin-top: 15px;
+        box-shadow: var(--box-shadow);
+        display: none;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .products-stats {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .stat-badge {
+        background: white;
+        padding: 10px 15px;
+        border-radius: 10px;
+        box-shadow: var(--box-shadow);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .stat-badge .count {
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .stat-total {
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .stat-low-stock {
+        border-left: 4px solid var(--warning-color);
+    }
+
+    .stat-out-of-stock {
+        border-left: 4px solid var(--danger-color);
+    }
+
+    /* Table enhancements */
+    #productsTable tbody tr {
+        transition: var(--transition);
+    }
+
+    #productsTable tbody tr:hover {
+        background: rgba(67, 97, 238, 0.03);
+        transform: translateY(-1px);
+    }
+
+    #productsTable th {
+        background: rgba(67, 97, 238, 0.08);
+        color: var(--dark-color);
+        font-weight: 600;
+        border: none;
+        padding: 15px 20px;
+        font-size: 14px;
+    }
+
+    #productsTable td {
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        vertical-align: middle;
+    }
+
+    #productsTable tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .products-stats {
+            flex-direction: column;
+        }
+        
+        .stat-badge {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        #productsTable {
+            font-size: 13px;
+        }
+        
+        #productsTable th,
+        #productsTable td {
+            padding: 10px 12px;
+        }
+    }
+
+    /* Loading state */
+    .loading-products {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+
+    .loading-products .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<!-- Products Content -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Product Inventory</h1>
+        <p class="page-subtitle">Manage and view all available products</p>
+    </div>
+    <button class="action-button" onclick="window.location.href='/billing?section=invoice'">
+        <span class="material-symbols-outlined">add</span>
+        New Invoice
+    </button>
+</div>
+
+<!-- Products Statistics -->
+<div class="products-stats">
+    <div class="stat-badge stat-total">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span>Total Products: <span class="count" id="totalProducts">0</span></span>
+    </div>
+    <div class="stat-badge stat-low-stock">
+        <span class="material-symbols-outlined">warning</span>
+        <span>Low Stock: <span class="count" id="lowStockCount">0</span></span>
+    </div>
+    <div class="stat-badge stat-out-of-stock">
+        <span class="material-symbols-outlined">cancel</span>
+        <span>Out of Stock: <span class="count" id="outOfStockCount">0</span></span>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="search-box">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input type="search" id="searchInput" class="search-input" placeholder="Search products by name, ID, price...">
+            </div>
+            <button class="filter-toggle" onclick="toggleFilter()">
+                <span class="material-symbols-outlined">filter_alt</span>
+                Filters
+            </button>
+        </div>
+
+        <div id="filterPanel" class="filter-panel">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Stock Range</label>
+                    <select id="stockFilter" class="form-select">
+                        <option value="">All Stock</option>
+                        <option value="0-0">Out of Stock (0)</option>
+                        <option value="1-10">Low Stock (1-10)</option>
+                        <option value="11-50">Medium Stock (11-50)</option>
+                        <option value="51-9999">High Stock (50+)</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Price Range</label>
+                    <select id="priceFilter" class="form-select">
+                        <option value="">All Prices</option>
+                        <option value="0-100">Budget (₹0 - ₹100)</option>
+                        <option value="101-500">Standard (₹101 - ₹500)</option>
+                        <option value="501-1000">Premium (₹501 - ₹1000)</option>
+                        <option value="1001-9999">Luxury (₹1000+)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">clear_all</span>
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <div class="products-table-container">
+            <table class="table" id="productsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product Name</th>
+                        <th>Price</th>
+                        <th>Available Quantity</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                    <!-- Products will be loaded here by Thymeleaf initially -->
+                    <tr th:each="product : ${products}">
+                        <td th:text="${product.id}" class="product-id"></td>
+                        <td th:text="${product.name}"></td>
+                        <td class="product-price" th:text="'₹' + ${#numbers.formatDecimal(product.price, 1, 2)}"></td>
+                        <td>
+                            <span th:classappend="${productQuantities[product.id] == 0} ? 'stock-out' : 
+                                                 (${productQuantities[product.id] < 10} ? 'stock-low' : 'stock-good')">
+                                <span th:text="${productQuantities[product.id]}"></span>
+                                <span th:if="${productQuantities[product.id] == 0}"> (Out of Stock)</span>
+                                <span th:if="${productQuantities[product.id] < 10 and productQuantities[product.id] > 0}"> (Low Stock)</span>
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Products Section-specific JavaScript -->
+<script>
+    // Products specific variables
+    let allProductsData = [];
+
+    // Initialize products when the section is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we're on the products section
+        if (document.getElementById('productsTable')) {
+            initializeProducts();
+        }
+    });
+
+    // Force initialization when this section is loaded (for Thymeleaf)
+    setTimeout(() => {
+        if (document.getElementById('productsTable') && !window.productsInitialized) {
+            initializeProducts();
+        }
+    }, 100);
+
+    function initializeProducts() {
+        console.log('Initializing Products...');
+        window.productsInitialized = true;
+        
+        // Store initial product data from Thymeleaf
+        initializeProductData();
+        
+        // Initialize search functionality
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', searchProducts);
+        }
+        
+        // Initialize filter functionality
+        const stockFilter = document.getElementById('stockFilter');
+        const priceFilter = document.getElementById('priceFilter');
+        if (stockFilter) stockFilter.addEventListener('change', filterProducts);
+        if (priceFilter) priceFilter.addEventListener('change', filterProducts);
+
+        // Update statistics
+        updateProductStatistics();
+
+        console.log('Products initialized with', allProductsData.length, 'products');
+    }
+
+    function initializeProductData() {
+        try {
+            // Get product data from Thymeleaf variables directly
+            if (typeof products !== 'undefined' && products.length > 0) {
+                console.log('Using Thymeleaf products variable:', products);
+                
+                allProductsData = products.map(product => {
+                    const quantity = availableQuantities && availableQuantities[product.id] ? 
+                                   availableQuantities[product.id] : 0;
+                    
+                    return {
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        quantity: quantity
+                    };
+                });
+            } else {
+                // Fallback: get data from the rendered table
+                console.log('Using table data as fallback');
+                const tableBody = document.getElementById('productsTableBody');
+                const rows = tableBody.getElementsByTagName('tr');
+                
+                allProductsData = [];
+                
+                for (let row of rows) {
+                    const cells = row.getElementsByTagName('td');
+                    if (cells.length >= 4) {
+                        // Extract quantity from the span text (remove " (Out of Stock)" etc.)
+                        let quantityText = cells[3].textContent.trim();
+                        let quantity = 0;
+                        
+                        // Extract just the number from quantity text
+                        const quantityMatch = quantityText.match(/\d+/);
+                        if (quantityMatch) {
+                            quantity = parseInt(quantityMatch[0]);
+                        }
+                        
+                        const product = {
+                            id: cells[0].textContent.trim(),
+                            name: cells[1].textContent.trim(),
+                            price: parseFloat(cells[2].textContent.replace('₹', '').trim()) || 0,
+                            quantity: quantity
+                        };
+                        allProductsData.push(product);
+                    }
+                }
+            }
+            
+            console.log('Loaded product data:', allProductsData);
+            
+        } catch (error) {
+            console.error('Error initializing product data:', error);
+            allProductsData = [];
+        }
+    }
+
+    function updateProductStatistics() {
+        const totalProducts = allProductsData.length;
+        const lowStockCount = allProductsData.filter(p => p.quantity > 0 && p.quantity <= 10).length;
+        const outOfStockCount = allProductsData.filter(p => p.quantity === 0).length;
+
+        document.getElementById('totalProducts').textContent = totalProducts;
+        document.getElementById('lowStockCount').textContent = lowStockCount;
+        document.getElementById('outOfStockCount').textContent = outOfStockCount;
+    }
+
+    function toggleFilter() {
+        const filterPanel = document.getElementById('filterPanel');
+        if (filterPanel.style.display === 'block') {
+            filterPanel.style.display = 'none';
+        } else {
+            filterPanel.style.display = 'block';
+        }
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('stockFilter').value = '';
+        document.getElementById('priceFilter').value = '';
+        updateProductsTable(allProductsData);
+        updateProductStatistics();
+    }
+
+    function searchProducts() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase();
+        
+        if (!filter) {
+            // If search is empty, show all products
+            updateProductsTable(allProductsData);
+            return;
+        }
+
+        const filteredProducts = allProductsData.filter(product => {
+            const searchText = [
+                product.id,
+                product.name,
+                product.price.toString(),
+                product.quantity.toString()
+            ].join(' ').toLowerCase();
+
+            return searchText.includes(filter);
+        });
+
+        updateProductsTable(filteredProducts);
+    }
+
+    function filterProducts() {
+        const searchInput = document.getElementById('searchInput').value.toLowerCase();
+        const stockFilter = document.getElementById('stockFilter').value;
+        const priceFilter = document.getElementById('priceFilter').value;
+
+        let filteredProducts = allProductsData;
+
+        // Apply search filter if any
+        if (searchInput) {
+            filteredProducts = filteredProducts.filter(product => {
+                const searchText = [
+                    product.id,
+                    product.name,
+                    product.price.toString(),
+                    product.quantity.toString()
+                ].join(' ').toLowerCase();
+
+                return searchText.includes(searchInput);
+            });
+        }
+
+        // Apply stock filter if any
+        if (stockFilter) {
+            const [minStock, maxStock] = stockFilter.split('-').map(Number);
+            filteredProducts = filteredProducts.filter(product => 
+                product.quantity >= minStock && product.quantity <= maxStock
+            );
+        }
+
+        // Apply price filter if any
+        if (priceFilter) {
+            const [minPrice, maxPrice] = priceFilter.split('-').map(Number);
+            filteredProducts = filteredProducts.filter(product => 
+                product.price >= minPrice && product.price <= maxPrice
+            );
+        }
+
+        updateProductsTable(filteredProducts);
+    }
+
+    function updateProductsTable(products) {
+        const tableBody = document.getElementById('productsTableBody');
+        
+        if (!products || products.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">
+                        <div class="text-center">
+                            <span class="material-symbols-outlined" style="font-size: 48px; opacity: 0.5;">search_off</span>
+                            <p class="mt-2">No products found matching your criteria</p>
+                            <button class="btn btn-outline-primary btn-sm mt-2" onclick="clearFilters()">
+                                Clear Filters
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        let tableHTML = '';
+        
+        products.forEach(product => {
+            const quantityClass = getQuantityClass(product.quantity);
+            const quantityText = getQuantityText(product.quantity);
+            
+            tableHTML += `
+                <tr>
+                    <td class="product-id">${product.id}</td>
+                    <td>${product.name}</td>
+                    <td class="product-price">₹${product.price.toFixed(2)}</td>
+                    <td>
+                        <span class="${quantityClass}">
+                            ${product.quantity} ${quantityText}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tableBody.innerHTML = tableHTML;
+    }
+
+    function getQuantityClass(quantity) {
+        if (quantity === 0) {
+            return 'stock-out';
+        } else if (quantity < 10) {
+            return 'stock-low';
+        } else {
+            return 'stock-good';
+        }
+    }
+
+    function getQuantityText(quantity) {
+        if (quantity === 0) {
+            return '(Out of Stock)';
+        } else if (quantity < 10) {
+            return '(Low Stock)';
+        } else {
+            return '';
+        }
+    }
+
+    // Make sure filters work on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Apply any existing filters on page load
+        setTimeout(() => {
+            const searchValue = document.getElementById('searchInput').value;
+            const stockValue = document.getElementById('stockFilter').value;
+            const priceValue = document.getElementById('priceFilter').value;
+            
+            if (searchValue || stockValue || priceValue) {
+                filterProducts();
+            }
+        }, 200);
+    });
+</script>

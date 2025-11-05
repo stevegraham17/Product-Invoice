@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Manage Customers</title>
+    <!-- Bootstrap CSS -->
+   
+</head>
+<body>
+<div class="container mt-5">
+
+    <!-- Add / Update Customer Section -->
+    <section id="add-customer" class="mb-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Add / Update Customer</h4>
+            </div>
+            <div class="card-body">
+                <form id="customerForm" class="row g-3">
+                    <input type="hidden" id="customerId">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" id="name" class="form-control" placeholder="Enter name" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="phoneNumber" class="form-label">Phone Number</label>
+                        <input type="text" id="phoneNumber" class="form-control" placeholder="Enter phone number" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="gstin" class="form-label">GSTIN</label>
+                        <input type="text" id="gstin" class="form-control" placeholder="Optional">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="type" class="form-label">Customer Type</label>
+                        <input type="text" id="type" class="form-control" readonly placeholder="Auto-detected">
+                    </div>
+
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-success" id="submitBtn">Save Customer</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search and Customer List Section -->
+    <section id="customer-list">
+        <div class="d-flex justify-content-between mb-2">
+            <input type="text" id="searchInput" class="form-control w-50" placeholder="Search by Name or Phone">
+            <div>
+                <button class="btn btn-outline-secondary" id="prevPage">Prev</button>
+                <span id="pageInfo" class="mx-2"></span>
+                <button class="btn btn-outline-secondary" id="nextPage">Next</button>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body table-responsive">
+                <table class="table table-striped table-hover" id="customerTable">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Phone Number</th>
+                        <th>GSTIN</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const form = document.getElementById('customerForm');
+const tableBody = document.querySelector('#customerTable tbody');
+const gstinInput = document.getElementById('gstin');
+const typeInput = document.getElementById('type');
+const customerIdInput = document.getElementById('customerId');
+const submitBtn = document.getElementById('submitBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const searchInput = document.getElementById('searchInput');
+const prevPageBtn = document.getElementById('prevPage');
+const nextPageBtn = document.getElementById('nextPage');
+const pageInfo = document.getElementById('pageInfo');
+
+let customers = [];
+let currentPage = 1;
+const pageSize = 5;
+
+// Auto-populate type based on GSTIN
+gstinInput.addEventListener('input', () => {
+    typeInput.value = gstinInput.value.trim() !== '' ? 'BUSINESS' : 'CONSUMER';
+});
+
+// Fetch all customers from backend
+async function fetchCustomers() {
+    try {
+        const res = await fetch('/api/customers');
+        customers = await res.json();
+        currentPage = 1;
+        renderTable();
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// Render table with pagination and search
+function renderTable() {
+    const searchText = searchInput.value.trim().toLowerCase();
+    const filtered = customers.filter(c =>
+        c.name.toLowerCase().includes(searchText) || c.phoneNumber.includes(searchText)
+    );
+
+    const totalPages = Math.ceil(filtered.length / pageSize);
+    if(currentPage > totalPages) currentPage = totalPages || 1;
+
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const paginated = filtered.slice(start, end);
+
+    tableBody.innerHTML = '';
+    paginated.forEach(c => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${c.id}</td>
+            <td>${c.name}</td>
+            <td>${c.phoneNumber}</td>
+            <td>${c.gstin || ''}</td>
+            <td>${c.type}</td>
+            <td>
+                <button class="btn btn-sm btn-primary me-2" onclick="editCustomer(${c.id})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${c.id})">Delete</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+}
+
+// Pagination
+prevPageBtn.addEventListener('click', () => { if(currentPage>1){currentPage--; renderTable();} });
+nextPageBtn.addEventListener('click', () => { const totalPages=Math.ceil(customers.filter(c=>c.name.toLowerCase().includes(searchInput.value.toLowerCase())||c.phoneNumber.includes(searchInput.value)).length/pageSize); if(currentPage<totalPages){currentPage++; renderTable();} });
+
+// Search input
+searchInput.addEventListener('input', () => { currentPage=1; renderTable(); });
+
+// Create / Update customer
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const customer = {
+        name: document.getElementById('name').value,
+        phoneNumber: document.getElementById('phoneNumber').value,
+        gstin: gstinInput.value,
+        type: typeInput.value
+    };
+
+    let url = '/api/customers';
+    let method = 'POST';
+    if (customerIdInput.value) {
+        url += `/${customerIdInput.value}`;
+        method = 'PUT';
+    }
+
+    try {
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(customer)
+        });
+        if(res.ok){
+            showToast(method==='POST'?'Customer created successfully!':'Customer updated successfully!','success');
+            form.reset();
+            typeInput.value = '';
+            customerIdInput.value = '';
+            submitBtn.textContent = 'Save Customer';
+            fetchCustomers();
+        }else showToast('Operation failed!','danger');
+    } catch(err){console.error(err);}
+});
+
+// Edit customer
+async function editCustomer(id){
+    try{
+        const res = await fetch(`/api/customers/${id}`);
+        const c = await res.json();
+        customerIdInput.value=c.id;
+        document.getElementById('name').value=c.name;
+        document.getElementById('phoneNumber').value=c.phoneNumber;
+        gstinInput.value=c.gstin||'';
+        typeInput.value=c.type;
+        submitBtn.textContent='Update Customer';
+    }catch(err){console.error(err);}
+}
+
+// Delete customer
+async function deleteCustomer(id){
+    if(!confirm('Are you sure you want to delete this customer?')) return;
+    try{
+        const res = await fetch(`/api/customers/${id}`,{method:'DELETE'});
+        if(res.ok){ showToast('Customer deleted successfully!','success'); fetchCustomers(); }
+        else showToast('Delete failed!','danger');
+    }catch(err){console.error(err);}
+}
+
+// Cancel edit
+cancelBtn.addEventListener('click',()=>{
+    form.reset();
+    typeInput.value='';
+    customerIdInput.value='';
+    submitBtn.textContent='Save Customer';
+});
+
+// Show Bootstrap toast
+function showToast(message,type='success'){
+    const toastHTML = `
+        <div class="toast align-items-center text-bg-${type} border-0 position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', toastHTML);
+    const toastEl=document.querySelector('.toast:last-child');
+    const bsToast=new bootstrap.Toast(toastEl,{delay:3000});
+    bsToast.show();
+}
+
+// Initial load
+fetchCustomers();
+</script>
+</body>
+</html>

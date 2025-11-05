@@ -1,0 +1,466 @@
+<!-- Invoice History Section-specific styles -->
+<style>
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 8px;
+    }
+
+    .page-item .page-link {
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        color: var(--dark-color);
+        font-weight: 500;
+        transition: var(--transition);
+    }
+
+    .page-item.active .page-link {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .page-item:not(.active) .page-link:hover {
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary-color);
+    }
+</style>
+
+<!-- Invoice History Content -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Invoice History</h1>
+        <p class="page-subtitle">View and manage your invoice reports</p>
+    </div>
+    <button class="action-button" onclick="window.location.href='/billing?section=invoice'">
+        <span class="material-symbols-outlined">add</span>
+        New Invoice
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="search-box">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input type="search" id="searchInputt" class="search-input" placeholder="Search invoices...">
+            </div>
+            <button class="filter-toggle" onclick="toggleFilterr()">
+                <span class="material-symbols-outlined">filter_alt</span>
+            </button>
+        </div>
+
+        <div id="filterPanelHistory" class="filter-panel">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">From Date</label>
+                    <input type="date" id="fromDate" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">To Date</label>
+                    <input type="date" id="toDate" class="form-control">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" onclick="filterInvoices()">Apply Filter</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Customer Name</th>
+                        <th>Phone Number</th>
+                        <th>Total Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceHistoryTableBody">
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">Loading latest invoices...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-container">
+            <ul class="pagination" id="pagination">
+                <!-- Pagination buttons will be dynamically inserted here -->
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice History Section-specific JavaScript -->
+<script>
+    // Invoice History specific variables
+    let invoiceHistoryCurrentPage = 0;
+    let invoiceHistoryTotalInvoices = 0;
+    const invoiceHistoryPerPage = 10;
+    let allInvoiceHistoryData = [];
+
+    // Initialize invoice history when the section is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we're on the invoice history section
+        if (document.getElementById('invoiceHistoryTableBody')) {
+            initializeInvoiceHistory();
+        }
+    });
+
+    // Force initialization when this section is loaded (for Thymeleaf)
+    setTimeout(() => {
+        if (document.getElementById('invoiceHistoryTableBody') && !window.invoiceHistoryInitialized) {
+            initializeInvoiceHistory();
+        }
+    }, 100);
+
+    function initializeInvoiceHistory() {
+        console.log('Initializing Invoice History...');
+        window.invoiceHistoryInitialized = true;
+        
+        // Load invoice history - start by getting total count to find the last page
+        loadInvoiceHistoryFirstTime();
+        
+        // Initialize search functionality
+        const searchInput = document.getElementById('searchInputt');
+        if (searchInput) {
+            searchInput.addEventListener('input', searchPro);
+        }
+
+        console.log('Invoice History initialized');
+    }
+
+    function toggleFilterr() {
+        const filterPanel = document.getElementById('filterPanelHistory');
+        if (filterPanel.style.display === 'block') {
+            filterPanel.style.display = 'none';
+        } else {
+            filterPanel.style.display = 'block';
+        }
+    }
+
+    function loadInvoiceHistoryFirstTime() {
+        console.log('Loading invoice history for the first time...');
+        
+        // Show loading state
+        document.getElementById('invoiceHistoryTableBody').innerHTML = 
+            '<tr><td colspan="6" class="text-center py-4 text-muted">Loading latest invoices...</td></tr>';
+
+        // First, get the total count to calculate the last page
+        $.ajax({
+            url: '/invoice-history?page=0&size=1', // Just get the total count
+            type: 'GET',
+            success: function(response) {
+                console.log('Total invoices response:', response);
+                
+                if (response && response.totalElements) {
+                    invoiceHistoryTotalInvoices = response.totalElements;
+                    
+                    // Calculate the last page (latest invoices)
+                    const totalPages = Math.ceil(invoiceHistoryTotalInvoices / invoiceHistoryPerPage);
+                    const lastPage = Math.max(0, totalPages - 1); // pages are 0-indexed
+                    
+                    console.log(`Total invoices: ${invoiceHistoryTotalInvoices}, Total pages: ${totalPages}, Loading last page: ${lastPage}`);
+                    
+                    // Now load the last page (latest invoices)
+                    loadInvoices(lastPage, invoiceHistoryPerPage);
+                    
+                } else {
+                    console.error("Invalid response structure:", response);
+                    showNoInvoicesMessage();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error loading invoice count:", status, error);
+                showErrorLoadingMessage();
+            }
+        });
+    }
+
+    function loadInvoices(page, size) {
+        size = size || invoiceHistoryPerPage;
+        
+        console.log('Loading invoices page:', page, 'size:', size);
+        
+        // Show loading state
+        document.getElementById('invoiceHistoryTableBody').innerHTML = 
+            '<tr><td colspan="6" class="text-center py-4 text-muted">Loading invoices...</td></tr>';
+
+        $.ajax({
+            url: '/invoice-history?page=' + page + '&size=' + size,
+            type: 'GET',
+            success: function(response) {
+                console.log('Invoices loaded for page', page, ':', response);
+                
+                if (response && response.content) {
+                    allInvoiceHistoryData = response.content;
+                    invoiceHistoryTotalInvoices = response.totalElements;
+                    invoiceHistoryCurrentPage = page;
+                    
+                    // Sort the data by date (newest first) for display - DESCENDING ORDER
+                    allInvoiceHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    
+                    updateInvoiceHistoryTable(allInvoiceHistoryData);
+                    updatePagination(invoiceHistoryTotalInvoices, page, size);
+                    
+                } else {
+                    console.error("Invalid response structure for page", page, ":", response);
+                    showNoInvoicesMessage();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error loading invoices for page", page, ":", status, error);
+                showErrorLoadingMessage();
+            }
+        });
+    }
+
+    function updateInvoiceHistoryTable(invoices) {
+        const tableBody = document.getElementById('invoiceHistoryTableBody');
+        tableBody.innerHTML = '';
+
+        if (!invoices || invoices.length === 0) {
+            showNoInvoicesMessage();
+            return;
+        }
+
+        // Display invoices in descending order (newest first)
+        invoices.forEach(invoice => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${invoice.id || 'N/A'}</td>
+                <td>${invoice.date ? new Date(invoice.date).toLocaleDateString() : 'N/A'}</td>
+                <td>${invoice.customerName || 'Unknown Customer'}</td>
+                <td>${invoice.customerPhoneNumber || 'N/A'}</td>
+                <td>₹${(invoice.totalAmount || 0).toFixed(2)}</td>
+                <td>
+                    <span class="material-symbols-outlined visibility-icon" 
+                          data-id="${invoice.id}" 
+                          style="cursor:pointer; color: var(--primary-color); font-size: 20px;">
+                        visibility
+                    </span>
+                </td>
+            `;
+            tableBody.appendChild(newRow);
+        });
+
+        // Attach click listener for view icons
+        attachViewIconListeners();
+    }
+
+    function attachViewIconListeners() {
+        document.querySelectorAll('.visibility-icon').forEach(icon => {
+            icon.addEventListener('click', function() {
+                const invoiceId = this.getAttribute('data-id');
+                console.log('Viewing invoice from history:', invoiceId);
+                
+                // Store the invoice ID and navigate to invoice section
+                sessionStorage.setItem('viewInvoiceId', invoiceId);
+                window.location.href = '/billing?section=invoice';
+            });
+        });
+    }
+
+    function updatePagination(totalInvoices, currentPage, invoicesPerPage) {
+        const paginationContainer = document.getElementById('pagination');
+        paginationContainer.innerHTML = '';
+
+        const totalPages = Math.ceil(totalInvoices / invoicesPerPage);
+        
+        if (totalPages <= 1) {
+            paginationContainer.style.display = 'none';
+            return;
+        }
+        
+        paginationContainer.style.display = 'flex';
+
+        // Previous button
+        if (currentPage > 0) {
+            const prevButton = document.createElement('li');
+            prevButton.className = 'page-item';
+            prevButton.innerHTML = `
+                <a class="page-link" href="#" aria-label="Previous">
+                    &laquo;
+                </a>
+            `;
+            prevButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                loadInvoices(currentPage - 1, invoicesPerPage);
+            });
+            paginationContainer.appendChild(prevButton);
+        }
+
+        // Page numbers
+        const maxVisiblePages = 5;
+        let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(0, endPage - maxVisiblePages + 1);
+        }
+
+        // First page and ellipsis
+        if (startPage > 0) {
+            const firstPageButton = document.createElement('li');
+            firstPageButton.className = 'page-item';
+            firstPageButton.innerHTML = `<a class="page-link" href="#">1</a>`;
+            firstPageButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                loadInvoices(0, invoicesPerPage);
+            });
+            paginationContainer.appendChild(firstPageButton);
+            
+            if (startPage > 1) {
+                const ellipsis = document.createElement('li');
+                ellipsis.className = 'page-item disabled';
+                ellipsis.innerHTML = `<span class="page-link">...</span>`;
+                paginationContainer.appendChild(ellipsis);
+            }
+        }
+
+        // Page number buttons
+        for (let i = startPage; i <= endPage; i++) {
+            const pageButton = document.createElement('li');
+            pageButton.className = 'page-item';
+            if (i === currentPage) {
+                pageButton.classList.add('active');
+            }
+            
+            pageButton.innerHTML = `<a class="page-link" href="#">${i + 1}</a>`;
+            pageButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                loadInvoices(i, invoicesPerPage);
+            });
+            
+            paginationContainer.appendChild(pageButton);
+        }
+
+        // Last page and ellipsis
+        if (endPage < totalPages - 1) {
+            if (endPage < totalPages - 2) {
+                const ellipsis = document.createElement('li');
+                ellipsis.className = 'page-item disabled';
+                ellipsis.innerHTML = `<span class="page-link">...</span>`;
+                paginationContainer.appendChild(ellipsis);
+            }
+            
+            const lastPageButton = document.createElement('li');
+            lastPageButton.className = 'page-item';
+            lastPageButton.innerHTML = `<a class="page-link" href="#">${totalPages}</a>`;
+            lastPageButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                loadInvoices(totalPages - 1, invoicesPerPage);
+            });
+            paginationContainer.appendChild(lastPageButton);
+        }
+
+        // Next button
+        if (currentPage < totalPages - 1) {
+            const nextButton = document.createElement('li');
+            nextButton.className = 'page-item';
+            nextButton.innerHTML = `
+                <a class="page-link" href="#" aria-label="Next">
+                    &raquo;
+                </a>
+            `;
+            nextButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                loadInvoices(currentPage + 1, invoicesPerPage);
+            });
+            paginationContainer.appendChild(nextButton);
+        }
+    }
+
+    function filterInvoices() {
+        const fromDate = document.getElementById("fromDate").value;
+        const toDate = document.getElementById("toDate").value;
+
+        if (!fromDate && !toDate) {
+            // If no filters applied, show all data
+            updateInvoiceHistoryTable(allInvoiceHistoryData);
+            return;
+        }
+
+        const filteredInvoices = allInvoiceHistoryData.filter(invoice => {
+            const invoiceDate = new Date(invoice.date);
+            let matchesDate = true;
+
+            if (fromDate) {
+                const startDate = new Date(fromDate);
+                if (invoiceDate < startDate) matchesDate = false;
+            }
+
+            if (toDate) {
+                const endDate = new Date(toDate);
+                endDate.setHours(23, 59, 59, 999); // Include entire end date
+                if (invoiceDate > endDate) matchesDate = false;
+            }
+
+            return matchesDate;
+        });
+
+        // Sort filtered results by date (newest first)
+        filteredInvoices.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        updateInvoiceHistoryTable(filteredInvoices);
+        
+        // Hide pagination when filtering
+        document.getElementById('pagination').style.display = 'none';
+    }
+
+    function searchPro() {
+        const searchInput = document.getElementById("searchInputt");
+        const searchValue = searchInput.value.toLowerCase().trim();
+        
+        if (!searchValue) {
+            // If search is empty, show all data
+            updateInvoiceHistoryTable(allInvoiceHistoryData);
+            document.getElementById('pagination').style.display = 'flex';
+            return;
+        }
+
+        const filteredInvoices = allInvoiceHistoryData.filter(invoice => {
+            const searchableText = [
+                invoice.id || '',
+                invoice.customerName || '',
+                invoice.customerPhoneNumber || '',
+                (invoice.totalAmount || 0).toString(),
+                invoice.date ? new Date(invoice.date).toLocaleDateString() : ''
+            ].join(' ').toLowerCase();
+
+            return searchableText.includes(searchValue);
+        });
+
+        // Sort search results by date (newest first)
+        filteredInvoices.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        updateInvoiceHistoryTable(filteredInvoices);
+        
+        // Hide pagination when searching
+        document.getElementById('pagination').style.display = 'none';
+    }
+
+    function showNoInvoicesMessage() {
+        const tableBody = document.getElementById('invoiceHistoryTableBody');
+        tableBody.innerHTML = 
+            '<tr><td colspan="6" class="text-center py-4 text-muted">No invoices found</td></tr>';
+        
+        document.getElementById('pagination').style.display = 'none';
+    }
+
+    function showErrorLoadingMessage() {
+        const tableBody = document.getElementById('invoiceHistoryTableBody');
+        tableBody.innerHTML = 
+            '<tr><td colspan="6" class="text-center py-4 text-danger">Error loading invoices. Please try again.</td></tr>';
+        
+        document.getElementById('pagination').style.display = 'none';
+    }
+</script>

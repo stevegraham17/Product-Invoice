@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<style>
+  .profile-head {
+    height: 120px;
+    background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+    border-radius: 12px 12px 0 0;
+    position: relative;
+  }
+
+  .company-logo-container {
+    width: 130px;
+    height: 130px;
+    margin-top: -65px; /* half height to center over header */
+    border: 4px solid #fff;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    position: relative;
+    background-color: #fff;
+    transition: transform 0.3s ease;
+  }
+
+  .company-logo-container:hover {
+    transform: scale(1.05);
+  }
+
+  #current-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures full coverage inside the circle */
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: block;
+  }
+
+  /* Overlay for camera icon */
+  .logo-upload {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(67, 97, 238, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+
+  .logo-upload:hover {
+    background: rgba(63, 55, 201, 0.95);
+    transform: scale(1.2);
+  }
+
+  .logo-upload input[type="file"] {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* Optional: overlay effect on hover over image */
+  .company-logo-container:hover #current-logo {
+    filter: brightness(0.8);
+  }
+</style>
+
+
+</head>
+<body>
+  <!-- Company Settings Section -->
+  <section id="company-settings-section" th:fragment="company-settings">
+   <!-- ========================= Company Settings ========================= -->
+   
+      <!-- Profile / Logo -->
+      <div class="card shadow-sm mb-4">
+        <div class="profile-head"></div>
+        <div class="card-body text-center pt-0">
+          <div class="company-logo-container mx-auto mb-3">
+            <img src="default-logo.png" id="current-logo" alt="Company Logo" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+            <div class="logo-upload">
+              <label for="company-logo-upload" class="mb-0">
+                <i class="fas fa-camera"></i>
+              </label>
+              <input type="file" id="company-logo-upload" name="logo" accept="image/*" onchange="previewLogo(event)" style="display:none;">
+            </div>
+          </div>
+          <h3 class="mt-2" id="company-name-display">Company Name</h3>
+
+        </div>
+      </div>
+
+      <!-- Main Form -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form id="company-form">
+            <!-- Company Info -->
+            <h5 class="mb-3 text-primary d-flex align-items-center">
+              <i class="fas fa-building me-2"></i> Company Information
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="company-name" class="form-label">Company Name</label>
+                <input type="text" id="company-name" name="companyName" class="form-control" placeholder="Enter company name" oninput="updateCompanyNameDisplay()">
+              </div>
+              <div class="col-md-6">
+                <label for="company-email" class="form-label">Email</label>
+                <input type="email" id="company-email" name="companyEmail" class="form-control" placeholder="Enter email">
+              </div>
+              <div class="col-md-6">
+                <label for="company-phone" class="form-label">Phone</label>
+                <input type="text" id="company-phone" name="companyPhone" class="form-control" placeholder="Enter phone number">
+              </div>
+            </div>
+
+            <!-- Address Section -->
+            <h5 class="mb-3 text-primary d-flex align-items-center">
+              <i class="fas fa-map-marker-alt me-2"></i> Company Address
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="company-street" class="form-label">Street</label>
+                <input type="text" id="company-street" class="form-control" placeholder="Enter street">
+              </div>
+              <div class="col-md-6">
+                <label for="company-city" class="form-label">City</label>
+                <input type="text" id="company-city" class="form-control" placeholder="Enter city">
+              </div>
+              <div class="col-md-6">
+                <label for="company-state" class="form-label">State</label>
+                <input type="text" id="company-state" class="form-control" placeholder="Enter state">
+              </div>
+              <div class="col-md-6">
+                <label for="company-country" class="form-label">Country</label>
+                <input type="text" id="company-country" class="form-control" placeholder="Enter country">
+              </div>
+            </div>
+
+            <!-- Tax Info -->
+            <h5 class="mb-3 text-primary d-flex align-items-center">
+              <i class="fas fa-receipt me-2"></i> Tax Information
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="company-gst" class="form-label">GST Number</label>
+                <input type="text" id="company-gst" name="gstNumber" class="form-control" placeholder="Enter GST Number" maxlength="15">
+              </div>
+              <div class="col-md-6">
+                <label for="company-pan" class="form-label">PAN Number</label>
+                <input type="text" id="company-pan" name="panNumber" class="form-control" placeholder="Enter PAN Number" maxlength="10">
+              </div>
+            </div>
+
+            <!-- Bank Details -->
+            <h5 class="mb-3 text-primary d-flex align-items-center">
+              <i class="fas fa-university me-2"></i> Bank Details
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="bank-name" class="form-label">Bank Name</label>
+                <input type="text" id="bank-name" name="bankName" class="form-control" placeholder="Enter bank name">
+              </div>
+              <div class="col-md-6">
+                <label for="bank-branch" class="form-label">Branch</label>
+                <input type="text" id="bank-branch" name="bankBranch" class="form-control" placeholder="Enter branch">
+              </div>
+              <div class="col-md-6">
+                <label for="account-number" class="form-label">Account Number</label>
+                <input type="text" id="account-number" name="accountNumber" class="form-control" placeholder="Enter account number">
+              </div>
+              <div class="col-md-6">
+                <label for="ifsc-code" class="form-label">IFSC Code</label>
+                <input type="text" id="ifsc-code" name="ifscCode" class="form-control" placeholder="Enter IFSC code" maxlength="11">
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="mt-4 text-end">
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="fas fa-save me-2"></i> Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  <script>
+    // Company Settings specific JavaScript
+  let fetchedCompanyName = 'Company Name'; // store the fetched name globally
+
+function updateCompanyNameDisplay() {
+  const inputEl = document.getElementById('company-name');
+  const displayEl = document.getElementById('company-name-display');
+
+  if (inputEl && displayEl) {
+    displayEl.textContent = inputEl.value || fetchedCompanyName;
+  }
+}
+    function previewLogo(event) {
+      const file = event?.target?.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { 
+        alert('Only image files are allowed'); 
+        return; 
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const logo = document.getElementById('current-logo');
+        if (logo) { 
+          logo.src = e.target.result; 
+          logo.style.display = 'block'; 
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+  
+
+    // Form submission handling
+    document.addEventListener('DOMContentLoaded', () => {
+      const companyForm = document.getElementById('company-form');
+      
+      // Load company settings when section is initialized
+      loadCompanySettings();
+
+      if (companyForm) {
+        companyForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(companyForm);
+          
+          const logoInput = document.getElementById('company-logo-upload');
+          if (logoInput && logoInput.files.length > 0) {
+            formData.append('logo', logoInput.files[0]);
+          }
+          
+          const street  = document.getElementById('company-street').value;
+          const city    = document.getElementById('company-city').value;
+          const state   = document.getElementById('company-state').value;
+          const country = document.getElementById('company-country').value;
+
+          const companyAddress = {
+            street: street,
+            city: city,
+            state: state,
+            country: country
+          };
+          
+          formData.append('companyAddress', JSON.stringify(companyAddress));
+          
+          try {
+            const res = await fetch('/company-settings/update', { 
+              method: 'POST', 
+              body: formData 
+            });
+            
+            const data = await res.json().catch(() => ({ success: res.ok }));
+            
+            let messageDiv = document.getElementById('update-message');
+            if (!messageDiv) {
+              messageDiv = document.createElement('div');
+              messageDiv.id = 'update-message';
+              companyForm.parentNode.insertBefore(messageDiv, companyForm.nextSibling);
+            }
+            
+            if (data.success) {
+              messageDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Company settings updated successfully!</div>';
+              // Reload settings to get updated data
+              loadCompanySettings();
+            } else {
+              messageDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>' + (data.message || 'Error updating company settings') + '</div>';
+            }
+            
+            setTimeout(() => { 
+              if (messageDiv) messageDiv.innerHTML = ''; 
+            }, 4000);
+            
+          } catch (err) {
+            console.error(err);
+            let messageDiv = document.getElementById('update-message');
+            if (!messageDiv) {
+              messageDiv = document.createElement('div');
+              messageDiv.id = 'update-message';
+              companyForm.parentNode.insertBefore(messageDiv, companyForm.nextSibling);
+            }
+            messageDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>An error occurred: ' + err.message + '</div>';
+            setTimeout(() => { if (messageDiv) messageDiv.innerHTML = ''; }, 5000);
+          }
+        });
+      }
+      
+      
+      async function loadCompanySettings() {
+      
+          try {
+            const response = await fetch('/company-settings');
+            if (!response.ok) return;
+            const settings = await response.json();
+
+            // Company Info
+            const nameEl = document.getElementById('company-name');
+            const phoneEl = document.getElementById('company-phone');
+            const emailEl = document.getElementById('company-email');
+            const logoEl = document.getElementById('current-logo');
+            const displayEl = document.getElementById('company-name-display');
+            if (nameEl) nameEl.value = settings.companyName || '';
+            if (displayEl) displayEl.textContent = settings.companyName || 'Company Name';
+            if (phoneEl) phoneEl.value = settings.companyPhone || '';
+            if (emailEl) emailEl.value = settings.companyEmail || '';
+          
+            // Address split logic
+            const parts = (settings.companyAddress || '').split(',').map(p => p.trim());
+            document.getElementById('company-street').value   = parts[0] || '';
+            document.getElementById('company-city').value     = parts[1] || '';
+            document.getElementById('company-state').value    = parts[2] || '';
+            document.getElementById('company-country').value  = parts[3] || '';
+
+            if (logoEl) {
+              if (settings.logoPath) {
+                logoEl.src = settings.logoPath.startsWith('/') ? settings.logoPath : '/' + settings.logoPath;
+                logoEl.style.display = 'block';
+              } else {
+                logoEl.style.display = 'none';
+              }
+            }
+
+            // Tax Info
+            const gstEl = document.getElementById('company-gst');
+            const panEl = document.getElementById('company-pan');
+            if (gstEl) gstEl.value = settings.gstNumber || '';
+            if (panEl) panEl.value = settings.panNumber || '';
+
+            // Bank Details
+            const bankNameEl = document.getElementById('bank-name');
+            const bankBranchEl = document.getElementById('bank-branch');
+            const accountNumberEl = document.getElementById('account-number');
+            const ifscCodeEl = document.getElementById('ifsc-code');
+
+            if (settings.bankDetails) {
+              if (bankNameEl) bankNameEl.value = settings.bankDetails.bankName || '';
+              if (bankBranchEl) bankBranchEl.value = settings.bankDetails.bankBranch || '';
+              if (accountNumberEl) accountNumberEl.value = settings.bankDetails.accountNumber || '';
+              if (ifscCodeEl) ifscCodeEl.value = settings.bankDetails.ifscCode || '';
+            } else {
+              if (bankNameEl) bankNameEl.value = '';
+              if (bankBranchEl) bankBranchEl.value = '';
+              if (accountNumberEl) accountNumberEl.value = '';
+              if (ifscCodeEl) ifscCodeEl.value = '';
+            }
+
+          } catch (err) {
+            console.error('Error fetching company settings:', err);
+          }
+        }
+      // Ensure previewLogo is bound to input if present
+      const logoInput = document.getElementById('company-logo-upload');
+      if (logoInput) logoInput.addEventListener('change', previewLogo);
+    });
+
+    // Export functions for global access
+    window.updateCompanyNameDisplay = updateCompanyNameDisplay;
+    window.previewLogo = previewLogo;
+    window.loadCompanySettings = loadCompanySettings;
+  </script>
+</body>
+</html>

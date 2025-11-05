@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Invoice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            min-height: 70vh;
+        }
+        
+        .pdf-section {
+            flex: 3;
+            min-width: 600px;
+            padding: 20px;
+            border-right: 1px solid #eaeaea;
+            display: flex;
+            flex-direction: column;
+        }
+        
+    .pdf-container {
+    flex: 1;
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow-y: auto;       /* only vertical scroll */
+    overflow-x: hidden;     /* no horizontal scroll */
+    background: #f9f9f9;
+    display: flex;
+    justify-content: center; 
+    align-items: flex-start;
+    padding: 10px;
+    min-height: 700px;
+    max-height: 90vh;
+    width: 100%;
+}
+
+#pdf-canvas {
+    display: block;
+    background: white;
+    width: 100% !important;   /* always fit container width */
+    height: auto !important;  /* keep aspect ratio */
+}
+
+
+        .sign-section {
+            flex: 2;
+            min-width: 300px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .signature-controls {
+            margin-bottom: 20px;
+        }
+        
+        .canvas-container {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            background: #fafafa;
+        }
+        
+        #signature-pad {
+            display: block;
+            cursor: crosshair;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #388E3C;
+        }
+        
+        .btn-secondary {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #1976D2;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+        
+        .btn-success {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #F57C00;
+        }
+        
+        .file-upload {
+            margin: 15px 0;
+        }
+        
+        .file-upload label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        #signature-overlay {
+            position: absolute;
+            cursor: move;
+            border: 2px dashed #4CAF50;
+            background: rgba(255, 255, 255, 0.7);
+            display: none;
+            z-index: 10;
+        }
+        
+        #signature-overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .resize-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #4CAF50;
+            bottom: -5px;
+            right: -5px;
+            cursor: nwse-resize;
+            border-radius: 50%;
+        }
+        
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+        
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 15px;
+            background: #f0f0f0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .pdf-section, .sign-section {
+                min-width: 100%;
+            }
+            
+         .pdf-section {
+    flex: 3;
+    min-width: 800px; /* was 600px */
+    padding: 20px;
+    border-right: 1px solid #eaeaea;
+    display: flex;
+    flex-direction: column;
+}
+
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sign Invoice</h1>
+            <p>Invoice #<span id="invoice-id">INV-2023-245</span></p>
+        </header>
+        
+        <div class="content">
+            <section class="pdf-section">
+                <h2>Invoice Preview</h2>
+                <div class="pdf-container">
+                    <canvas id="pdf-canvas"></canvas>
+                    <div id="signature-overlay">
+                        <img id="signature-img" alt="Signature">
+                        <div class="resize-handle"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="sign-section">
+                <h2>Add Your Signature</h2>
+                <div class="signature-controls">
+                    <div class="canvas-container">
+                        <canvas id="signature-pad" width="445" height="200"></canvas>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="save-sign">Save Signature</button>
+                        <button class="btn btn-danger" id="clear-sign">Clear</button>
+                    </div>
+                    
+                 
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" id="submit-sign">Sign & Submit Invoice</button>
+                        <button class="btn btn-success" id="download-pdf" style="display: none;">Download Signed PDF</button>
+                    </div>
+                    
+                    <div id="status-message" class="status-message"></div>
+                </div>
+            </section>
+        </div>
+        
+        <footer>
+            <p>invoice Signing</p>
+        </footer>
+    </div>
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script>
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            const signaturePad = new SignaturePad(document.getElementById('signature-pad'), {
+                minWidth: 1,
+                maxWidth: 3,
+                penColor: "rgb(0, 0, 0)",
+                backgroundColor: "rgb(255, 255, 255)"
+            });
+            
+            const pdfCanvas = document.getElementById('pdf-canvas');
+            const signatureOverlay = document.getElementById('signature-overlay');
+            const signatureImg = document.getElementById('signature-img');
+            const statusMessage = document.getElementById('status-message');
+            const downloadBtn = document.getElementById('download-pdf');
+            let currentSignature = "";
+            let isSigned = false;
+            let pdfDoc = null;
+            let pdfPage = null;
+            let canvasContext = pdfCanvas.getContext('2d');
+            let pdfScale = 1;
+            let pdfViewport = null;
+            
+            // Get invoice ID from URL parameters
+            //const urlParams = new URLSearchParams(window.location.search);
+            //const invoiceId = urlParams.get('invoiceId') || 'INV-2023-245';
+            // Get invoiceId from REST-style URL: /invoices/260/sign
+const pathParts = window.location.pathname.split('/');
+const invoiceId = pathParts[2];  
+
+
+fetch(`/invoices/${invoiceId}/details`)
+.then(res => res.json())
+.then(data => {
+    // Show formatted invoice number or fallback to ID
+    document.getElementById('invoice-id').textContent = data.invoiceNumber || invoiceId;
+})
+.catch(err => {
+    console.error("Error fetching invoice details:", err);
+    document.getElementById('invoice-id').textContent = invoiceId;
+});
+            
+            // Load and render PDF
+        async function loadPDF() {
+    try {
+        const pdfUrl = `/invoices/${invoiceId}/pdf`;
+        const loadingTask = pdfjsLib.getDocument(pdfUrl);
+        pdfDoc = await loadingTask.promise;
+
+        const page = await pdfDoc.getPage(1);
+
+        // Scale based only on container width (no horizontal scroll)
+        const container = document.querySelector('.pdf-container');
+        const containerWidth = container.clientWidth;
+
+        const unscaledViewport = page.getViewport({ scale: 1 });
+        const scale = containerWidth / unscaledViewport.width;
+
+        const outputScale = window.devicePixelRatio || 1;
+        const finalScale = scale * outputScale;
+
+        // Create scaled viewport
+        const pdfViewport = page.getViewport({ scale: finalScale });
+
+        // Set canvas dimensions
+        pdfCanvas.width = Math.floor(pdfViewport.width);
+        pdfCanvas.height = Math.floor(pdfViewport.height);
+
+        // Match CSS size (so it fits container width exactly)
+        pdfCanvas.style.width = containerWidth + "px";
+        pdfCanvas.style.height = (pdfViewport.height / outputScale) + "px";
+
+        // Render PDF page
+        await page.render({ canvasContext, viewport: pdfViewport }).promise;
+
+        console.log("PDF rendered full-width, no horizontal scroll");
+    } catch (error) {
+        console.error("Error loading PDF:", error);
+        showStatusMessage("Error loading invoice PDF. Please try again.", "error");
+        createSampleInvoice();
+    }
+}
+
+            
+            // Create sample invoice for fallback
+            function createSampleInvoice() {
+                pdfCanvas.width = 800;
+                pdfCanvas.height = 1000;
+                
+                canvasContext.fillStyle = 'white';
+                canvasContext.fillRect(0, 0, pdfCanvas.width, pdfCanvas.height);
+                
+                // Draw invoice content similar to your PDF structure
+                canvasContext.fillStyle = '#333';
+                canvasContext.font = '24px Arial';
+                canvasContext.fillText('TAX INVOICE', 50, 50);
+                
+                canvasContext.font = '14px Arial';
+                canvasContext.fillText('Invoice No: 245', 50, 90);
+                canvasContext.fillText('Invoice Date: 25/09/2025', 50, 110);
+                canvasContext.fillText('Due Date: 29/09/2025', 50, 130);
+                
+                // Draw signature line at the bottom
+                canvasContext.beginPath();
+                canvasContext.moveTo(350, 700);
+                canvasContext.lineTo(550, 700);
+                canvasContext.stroke();
+                canvasContext.fillText('Authorized Signatory', 350, 720);
+                
+                // Set default viewport for coordinate calculations
+                pdfViewport = {
+                    width: pdfCanvas.width,
+                    height: pdfCanvas.height,
+                    transform: [1, 0, 0, 1, 0, 0]
+                };
+            }
+            
+            // Generate and download PDF with signature
+            async function generateSignedPDF() {
+  try {
+    showStatusMessage('Generating signed PDF...', 'success');
+
+    // 1. Fetch original PDF bytes
+    const pdfUrl = `/invoices/${invoiceId}/pdf`;
+    const existingPdfBytes = await fetch(pdfUrl).then(res => res.arrayBuffer());
+
+    // 2. Load PDF with pdf-lib
+    const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+
+    // 3. Embed signature image
+    const pngImage = await pdfDoc.embedPng(currentSignature);
+    const pages = pdfDoc.getPages();
+    const firstPage = pages[0];
+
+    // 4. Convert overlay position → PDF coords
+    const sigRect = signatureOverlay.getBoundingClientRect();
+    const canvasRect = pdfCanvas.getBoundingClientRect();
+
+    const relX = sigRect.left - canvasRect.left;
+    const relY = sigRect.top - canvasRect.top;
+
+    const scaleX = firstPage.getWidth() / pdfCanvas.clientWidth;
+    const scaleY = firstPage.getHeight() / pdfCanvas.clientHeight;
+
+    const pdfX = relX * scaleX;
+    const pdfY = (canvasRect.height - (relY + signatureOverlay.offsetHeight)) * scaleY;
+    const pdfWidth = signatureOverlay.offsetWidth * scaleX;
+    const pdfHeight = signatureOverlay.offsetHeight * scaleY;
+
+    // 5. Draw signature
+    firstPage.drawImage(pngImage, {
+      x: pdfX,
+      y: pdfY,
+      width: pdfWidth,
+      height: pdfHeight,
+    });
+
+    // 6. Save updated PDF
+    const signedPdfBytes = await pdfDoc.save();
+
+    // Download
+    const blob = new Blob([signedPdfBytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `signed-invoice-${invoiceId}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showStatusMessage('Signed PDF downloaded successfully!', 'success');
+
+  } catch (err) {
+    console.error(err);
+    showStatusMessage('Error generating signed PDF', 'error');
+  }
+}
+
+            
+            // Fallback method: Generate PDF from canvas
+            async function generatePDFFromCanvas() {
+                try {
+                    // Create a new canvas that combines PDF and signature
+                    const combinedCanvas = document.createElement('canvas');
+                    const combinedContext = combinedCanvas.getContext('2d');
+                    
+                    // Set canvas size to match displayed PDF
+                    combinedCanvas.width = pdfCanvas.width;
+                    combinedCanvas.height = pdfCanvas.height;
+                    
+                    // Draw the PDF onto the combined canvas
+                    combinedContext.drawImage(pdfCanvas, 0, 0);
+                    
+                    // Draw the signature onto the combined canvas at correct position
+                    if (signatureOverlay.style.display !== 'none') {
+                        const img = new Image();
+                        await new Promise((resolve) => {
+                            img.onload = () => {
+                                // Get exact position relative to PDF canvas
+                                const signatureRect = signatureOverlay.getBoundingClientRect();
+                                const canvasRect = pdfCanvas.getBoundingClientRect();
+                                
+                                const x = signatureRect.left - canvasRect.left;
+                                const y = signatureRect.top - canvasRect.top;
+                                const width = signatureOverlay.offsetWidth;
+                                const height = signatureOverlay.offsetHeight;
+                                
+                                combinedContext.drawImage(img, x, y, width, height);
+                                resolve();
+                            };
+                            img.src = currentSignature;
+                        });
+                    }
+                    
+                    // Convert canvas to image data
+                    const pdfImageData = combinedCanvas.toDataURL('image/png');
+                    
+                    // Create PDF using jsPDF
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: pdfCanvas.width > pdfCanvas.height ? 'landscape' : 'portrait',
+                        unit: 'px',
+                        format: [pdfCanvas.width, pdfCanvas.height]
+                    });
+                    
+                    // Add the image to PDF
+                    pdf.addImage(pdfImageData, 'PNG', 0, 0, pdfCanvas.width, pdfCanvas.height);
+                    
+                    // Save the PDF
+                    pdf.save(`signed-invoice-${invoiceId}.pdf`);
+                    showStatusMessage('Signed PDF downloaded successfully!', 'success');
+                    
+                } catch (error) {
+                    console.error('Error generating PDF from canvas:', error);
+                    showStatusMessage('Error generating signed PDF. Please try again.', 'error');
+                }
+            }
+            
+            // Make signature overlay draggable and resizable
+            function makeDraggableAndResizable(el) {
+                let isDragging = false, isResizing = false;
+                let startX, startY, origX, origY, origWidth, origHeight;
+                const resizeHandle = el.querySelector('.resize-handle');
+                
+                // Dragging functionality
+                el.addEventListener("mousedown", (e) => {
+                    if (e.target === resizeHandle) return;
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    origX = el.offsetLeft;
+                    origY = el.offsetTop;
+                    el.style.zIndex = 9999;
+                });
+                
+                // Resizing functionality
+                resizeHandle.addEventListener("mousedown", (e) => {
+                    isResizing = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    origWidth = el.offsetWidth;
+                    origHeight = el.offsetHeight;
+                    e.stopPropagation();
+                });
+                
+                document.addEventListener("mousemove", (e) => {
+                    if (isDragging) {
+                        const dx = e.clientX - startX;
+                        const dy = e.clientY - startY;
+                        el.style.left = (origX + dx) + "px";
+                        el.style.top = (origY + dy) + "px";
+                    } else if (isResizing) {
+                        const dx = e.clientX - startX;
+                        const dy = e.clientY - startY;
+                        const newWidth = Math.max(80, origWidth + dx);
+                        const newHeight = Math.max(30, origHeight + dy);
+                        el.style.width = newWidth + "px";
+                        el.style.height = newHeight + "px";
+                    }
+                });
+                
+                document.addEventListener("mouseup", () => { 
+                    isDragging = false; 
+                    isResizing = false;
+                });
+            }
+            
+            // Show status message
+            function showStatusMessage(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = `status-message ${type}`;
+                statusMessage.style.display = "block";
+                
+                if (type === "success") {
+                    setTimeout(() => {
+                        statusMessage.style.display = "none";
+                    }, 5000);
+                }
+            }
+            
+            // Clear signature
+            document.getElementById('clear-sign').addEventListener('click', () => {
+                signaturePad.clear();
+                signatureOverlay.style.display = "none";
+                signatureImg.src = "";
+                currentSignature = "";
+                document.getElementById('upload-sign').value = "";
+                statusMessage.style.display = "none";
+                downloadBtn.style.display = "none";
+            });
+            
+            // Save drawn signature
+            document.getElementById('save-sign').addEventListener('click', () => {
+                if (!signaturePad.isEmpty()) {
+                    currentSignature = signaturePad.toDataURL('image/png');
+                    signatureImg.src = currentSignature;
+                    signatureOverlay.style.display = "block";
+                    // change position and size
+                    signatureOverlay.style.left = "400px";
+                    signatureOverlay.style.top = "700px";
+                    signatureOverlay.style.width = "250px";
+                    signatureOverlay.style.height = "100px";
+                    
+                    showStatusMessage("Signature saved. Drag it to the desired location.", "success");
+                    downloadBtn.style.display = "block";
+                } else if (!currentSignature) {
+                    showStatusMessage("Draw or upload a signature first!", "error");
+                }
+            });
+            
+            // Upload image as signature
+            
+            
+            document.getElementById('submit-sign').addEventListener('click', async () => {
+                if (!currentSignature) {
+                    showStatusMessage("Please draw or upload and save your signature first!", "error");
+                    return;
+                }
+
+                const submitBtn = document.getElementById('submit-sign');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = "Signing...";
+                submitBtn.disabled = true;
+
+                try {
+                    // 1. Fetch original PDF bytes
+                    const pdfUrl = `/invoices/${invoiceId}/pdf`;
+                    const existingPdfBytes = await fetch(pdfUrl).then(res => res.arrayBuffer());
+
+                    // 2. Load PDF with pdf-lib
+                    const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+
+                    // 3. Embed signature image
+                    const pngImage = await pdfDoc.embedPng(currentSignature);
+                    const pages = pdfDoc.getPages();
+                    const firstPage = pages[0];
+
+                    // 4. Calculate position (same as download logic)
+                    const sigRect = signatureOverlay.getBoundingClientRect();
+                    const canvasRect = pdfCanvas.getBoundingClientRect();
+
+                    const relX = sigRect.left - canvasRect.left;
+                    const relY = sigRect.top - canvasRect.top;
+
+                    const scaleX = firstPage.getWidth() / pdfCanvas.clientWidth;
+                    const scaleY = firstPage.getHeight() / pdfCanvas.clientHeight;
+
+                    const pdfX = relX * scaleX;
+                    const pdfY = (canvasRect.height - (relY + signatureOverlay.offsetHeight)) * scaleY;
+                    const pdfWidth = signatureOverlay.offsetWidth * scaleX;
+                    const pdfHeight = signatureOverlay.offsetHeight * scaleY;
+
+                    // 5. Draw signature
+                    firstPage.drawImage(pngImage, {
+                        x: pdfX,
+                        y: pdfY,
+                        width: pdfWidth,
+                        height: pdfHeight,
+                    });
+
+                    // 6. Save updated PDF bytes
+                    const signedPdfBytes = await pdfDoc.save();
+
+                    // 7. Send to backend as Blob
+                    const pdfBlob = new Blob([signedPdfBytes], { type: "application/pdf" });
+                    const formData = new FormData();
+                    formData.append("file", pdfBlob, `signed-invoice-${invoiceId}.pdf`);
+                    formData.append("invoiceId", invoiceId);
+
+                    const response = await fetch(`/invoices/${invoiceId}/sign`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        isSigned = true;
+                        showStatusMessage('Invoice signed and stored successfully!', "success");
+
+                        pdfCanvas.style.border = "2px solid #4CAF50";
+                        signatureOverlay.style.border = "2px solid #4CAF50";
+
+                        signaturePad.off();
+                        //document.getElementById('upload-sign').disabled = true;
+                        document.getElementById('save-sign').disabled = true;
+                        document.getElementById('clear-sign').disabled = true;
+
+                        downloadBtn.style.display = "block";
+                    } else {
+                        throw new Error('Failed to save signed PDF on server');
+                    }
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    showStatusMessage('Error signing invoice. Please try again.', "error");
+                } finally {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+
+
+            // Download PDF with signature
+            downloadBtn.addEventListener('click', generateSignedPDF);
+            
+            // Initialize the application
+            loadPDF();
+            makeDraggableAndResizable(signatureOverlay);
+        });
+    </script>
+</body>
+</html>

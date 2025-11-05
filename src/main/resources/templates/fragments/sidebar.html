@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <!-- Sidebar Fragment -->
+    <nav th:fragment="sidebar(systemType, currentSection)" class="app-sidebar" id="sidebar">
+        <div class="nav-section">
+            <div class="nav-title">Main Menu</div>
+            <ul class="nav-menu">
+                <!-- Billing System Menu -->
+                <th:block th:if="${systemType != 'admin'}">
+                  <li class="nav-item">
+                <a href="/billing?section=dashboard" 
+                   class="nav-link" 
+                   th:classappend="${currentSection == 'dashboard'} ? 'active' : ''">
+                    <span class="nav-icon material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/billing?section=invoice" 
+                   class="nav-link" 
+                   th:classappend="${currentSection == 'invoice'} ? 'active' : ''">
+                    <span class="nav-icon material-symbols-outlined">receipt</span>
+                    Create Invoice
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/billing?section=products" 
+                   class="nav-link" 
+                   th:classappend="${currentSection == 'products'} ? 'active' : ''">
+                    <span class="nav-icon material-symbols-outlined">inventory_2</span>
+                    Products
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/billing?section=invoice-history" 
+                   class="nav-link" 
+                   th:classappend="${currentSection == 'invoice-history'} ? 'active' : ''">
+                    <span class="nav-icon material-symbols-outlined">history</span>
+                    Invoice History
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/billing?section=signed-invoices" 
+                   class="nav-link" 
+                   th:classappend="${currentSection == 'signed-invoices'} ? 'active' : ''">
+                    <span class="nav-icon material-symbols-outlined">assignment_turned_in</span>
+                    Signed Invoices
+                </a>
+            </li>
+                </th:block>
+                
+                <!-- Admin System Menu -->
+                <th:block th:if="${systemType == 'admin'}">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products?section=dashboard" th:classappend="${currentSection == 'dashboard'} ? 'active' : ''">
+                            <span class="nav-icon material-symbols-outlined">dashboard</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products?section=products" th:classappend="${currentSection == 'products'} ? 'active' : ''">
+                            <span class="nav-icon material-symbols-outlined">package_2</span>
+                            <span>Products</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products?section=manage-sales" th:classappend="${currentSection == 'manage-sales'} ? 'active' : ''">
+                            <span class="nav-icon material-symbols-outlined">shelves</span>
+                            <span>Manage Sales</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products?section=add-cashier" th:classappend="${currentSection == 'add-cashier'} ? 'active' : ''">
+                            <span class="nav-icon material-symbols-outlined">badge</span>
+                            <span>Add Cashier</span>
+                        </a>
+                    </li>                           
+                     <li class="nav-item">
+                        <a class="nav-link" href="/products?section=add-customer" th:classappend="${currentSection == 'add-customer'} ? 'active' : ''">
+                          <span class="nav-icon material-symbols-outlined">badge</span>
+                            <span>Manage Customers</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products?section=company-settings" th:classappend="${currentSection == 'company-settings'} ? 'active' : ''">
+                            <span class="nav-icon material-symbols-outlined">manage_accounts</span>
+                            <span>Company Settings</span>
+                        </a>
+                    </li>
+                </th:block>
+            </ul>
+        </div>
+    </nav>
+</body>
+</html>

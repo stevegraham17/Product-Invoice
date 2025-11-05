@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="admin-dashboard(companyId)">
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    // Set company ID from Thymeleaf parameter
+    window.currentCompanyId = /*[[${companyId}]]*/ 1;
+    console.log('🔄 Dashboard - Company ID:', window.currentCompanyId);
+    /*]]>*/
+  </script>
+  <section>
+    <h2 class="section-title">Dashboard</h2>
+    
+    <!-- Summary Cards -->
+    <div class="row mt-4 g-4">
+      <div class="col-xl-3 col-md-6">
+        <div class="card p-4 dashboard-card h-100">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h5 class="text-primary">Total Products</h5>
+              <h2 class="mt-2 mb-0" id="total-products-count">0</h2>
+              <p class="text-muted mb-0">Active Products</p>
+            </div>
+            <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+              <i class="fas fa-boxes text-primary fs-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <small class="text-success">
+              <i class="fas fa-arrow-up me-1"></i>
+              <span id="products-trend">0</span> this month
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6">
+        <div class="card p-4 dashboard-card h-100">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h5 class="text-success">Stock Value</h5>
+              <h2 class="mt-2 mb-0" id="total-stock-value">₹0</h2>
+              <p class="text-muted mb-0">Current Inventory Value</p>
+            </div>
+            <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+              <i class="fas fa-rupee-sign text-success fs-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <small class="text-muted" id="stock-items-count">0 items in stock</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6">
+        <div class="card p-4 dashboard-card h-100">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h5 class="text-warning">Low Stock</h5>
+              <h2 class="mt-2 mb-0" id="low-stock-count">0</h2>
+              <p class="text-muted mb-0">Need Reordering</p>
+            </div>
+            <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+              <i class="fas fa-exclamation-triangle text-warning fs-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <small class="text-warning" id="critical-stock-count">0 critical</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6">
+        <div class="card p-4 dashboard-card h-100">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h5 class="text-info">Total Sales</h5>
+              <h2 class="mt-2 mb-0" id="total-sales-value">₹0</h2>
+              <p class="text-muted mb-0">All Time Revenue</p>
+            </div>
+            <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+              <i class="fas fa-chart-line text-info fs-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <small class="text-success">
+              <i class="fas fa-shopping-cart me-1"></i>
+              <span id="total-orders-count">0</span> orders
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts and Detailed Analytics -->
+    <div class="row mt-4 g-4">
+      <!-- Stock Distribution Chart -->
+      <div class="col-xl-6">
+        <div class="card h-100">
+          <div class="card-header bg-transparent border-bottom-0">
+            <h5 class="card-title mb-0">Stock Distribution</h5>
+            <p class="text-muted mb-0 small">Current inventory levels</p>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="border-end">
+                  <h3 class="text-success mb-1" id="in-stock-count">0</h3>
+                  <small class="text-muted">In Stock</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="border-end">
+                  <h3 class="text-warning mb-1" id="low-stock-items">0</h3>
+                  <small class="text-muted">Low Stock</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div>
+                  <h3 class="text-danger mb-1" id="out-of-stock-count">0</h3>
+                  <small class="text-muted">Out of Stock</small>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="progress" style="height: 12px;">
+                <div class="progress-bar bg-success" id="in-stock-bar" style="width: 0%"></div>
+                <div class="progress-bar bg-warning" id="low-stock-bar" style="width: 0%"></div>
+                <div class="progress-bar bg-danger" id="out-of-stock-bar" style="width: 0%"></div>
+              </div>
+              <div class="d-flex justify-content-between mt-2 small text-muted">
+                <span>In Stock</span>
+                <span>Low Stock</span>
+                <span>Out of Stock</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Products -->
+      <div class="col-xl-6">
+        <div class="card h-100">
+          <div class="card-header bg-transparent border-bottom-0">
+            <h5 class="card-title mb-0">Top Products</h5>
+            <p class="text-muted mb-0 small">By stock value</p>
+          </div>
+          <div class="card-body">
+            <div id="top-products-list">
+              <div class="text-center py-4">
+                <i class="fas fa-box-open text-muted fs-1"></i>
+                <p class="text-muted mt-2">No products data available</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity and Quick Stats -->
+    <div class="row mt-4 g-4">
+      <!-- Recent Sales Activity -->
+      <div class="col-xl-8">
+        <div class="card h-100">
+          <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title mb-0">Recent Sales Activity</h5>
+              <p class="text-muted mb-0 small">Latest purchases and stock updates</p>
+            </div>
+            <button class="btn btn-sm btn-outline-primary" onclick="refreshDashboard()">
+              <i class="fas fa-sync-alt me-1"></i> Refresh
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-activity-table">
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                      <i class="fas fa-clipboard-list me-2"></i>
+                      No recent activity
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="col-xl-4">
+        <div class="card h-100">
+          <div class="card-header bg-transparent border-bottom-0">
+            <h5 class="card-title mb-0">Quick Stats</h5>
+            <p class="text-muted mb-0 small">Inventory overview</p>
+          </div>
+          <div class="card-body">
+            <div class="list-group list-group-flush">
+              <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                <div>
+                  <i class="fas fa-tags text-primary me-2"></i>
+                  <span>Categories</span>
+                </div>
+                <span class="badge bg-primary rounded-pill" id="categories-count">0</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                <div>
+                  <i class="fas fa-warehouse text-success me-2"></i>
+                  <span>Avg. Stock Value</span>
+                </div>
+                <span class="badge bg-success rounded-pill" id="avg-stock-value">₹0</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                <div>
+                  <i class="fas fa-chart-pie text-info me-2"></i>
+                  <span>Stock Turnover</span>
+                </div>
+                <span class="badge bg-info rounded-pill" id="stock-turnover">0%</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                <div>
+                  <i class="fas fa-clock text-warning me-2"></i>
+                  <span>Last Updated</span>
+                </div>
+                <small class="text-muted" id="last-updated">Just now</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+//Dashboard data management
+  let dashboardData = {
+      products: [],
+      purchases: [],
+      lastUpdated: new Date()
+  };
+
+  // API endpoints configuration
+  const API_ENDPOINTS = {
+      products: '/api/dashboard/products',
+      purchases: '/api/dashboard/purchases'
+  };
+
+  // Get company ID function
+  function getCompanyId() {
+      if (window.currentCompanyId) {
+          return window.currentCompanyId;
+      }
+      return 1;
+  }
+
+  async function initializeDashboard() {
+      console.log('Initializing dashboard...');
+      
+      try {
+          showDashboardLoading();
+          await fetchDashboardData();
+          updateDashboardMetrics();
+          
+          console.log(`✅ Dashboard initialized with ${dashboardData.products.length} products and ${dashboardData.purchases.length} purchases`);
+          hideDashboardLoading();
+          
+      } catch (error) {
+          console.error('❌ Failed to initialize dashboard:', error);
+          showDashboardNotification('Failed to load dashboard data.', 'warning');
+          useMockData();
+          updateDashboardMetrics();
+      }
+  }
+
+  async function fetchDashboardData() {
+      const companyId = getCompanyId();
+      
+      try {
+          const [productsResponse, purchasesResponse] = await Promise.all([
+              fetch(`${API_ENDPOINTS.products}?companyId=${companyId}`),
+              fetch(`${API_ENDPOINTS.purchases}?companyId=${companyId}`)
+          ]);
+
+          if (!productsResponse.ok) throw new Error(`Products API failed: ${productsResponse.status}`);
+          if (!purchasesResponse.ok) throw new Error(`Purchases API failed: ${purchasesResponse.status}`);
+
+          dashboardData.products = await productsResponse.json();
+          dashboardData.purchases = await purchasesResponse.json();
+
+          console.log("📦 Products:", dashboardData.products);
+          console.log("🧾 Purchases:", dashboardData.purchases);
+
+          calculateStockQuantities();
+
+      } catch (error) {
+          console.error("❌ Error fetching dashboard data:", error);
+          throw error;
+      }
+  }
+
+  function calculateStockQuantities() {
+      console.log("🔄 Calculating stock quantities...");
+      
+      // Reset stocks to original values first
+      dashboardData.products.forEach(product => {
+          product.calculatedStock = product.stockQuantity || 0;
+          product.relatedPurchases = [];
+      });
+
+      let mappingsFound = 0;
+      
+      dashboardData.purchases.forEach(purchase => {
+          let productId = null;
+          
+          // Handle nested product object
+          if (purchase.product && purchase.product.id) {
+              productId = purchase.product.id;
+          }
+          
+          if (productId !== null) {
+              const product = dashboardData.products.find(p => p.id === productId);
+              if (product) {
+                  product.calculatedStock += purchase.quantity;
+                  if (!product.relatedPurchases) product.relatedPurchases = [];
+                  product.relatedPurchases.push(purchase);
+                  mappingsFound++;
+                  console.log(` Added ${purchase.quantity} units to ${product.name} (ID: ${product.id}) from purchase ${purchase.id}`);
+              } else {
+                  console.warn(` Product with id ${productId} not found for purchase ${purchase.id}`);
+              }
+          } else {
+              console.warn(`❓ No product found for purchase ${purchase.id}`);
+          }
+      });
+
+      if (mappingsFound > 0) {
+          console.log(`✅ Successfully mapped ${mappingsFound} purchases to products`);
+      } else {
+          console.warn("⚠️ No product mappings found. Using original stock quantities only.");
+          dashboardData.products.forEach(product => {
+              product.calculatedStock = product.stockQuantity || 0;
+          });
+      }
+
+      console.log("📊 Final Stock Quantities:", dashboardData.products.map(p => ({
+          id: p.id,
+          name: p.name,
+          originalStock: p.stockQuantity,
+          calculatedStock: p.calculatedStock,
+          purchaseCount: p.relatedPurchases ? p.relatedPurchases.length : 0
+      })));
+  }
+
+  function updateDashboardMetrics() {
+      updateSummaryCards();
+      updateStockDistribution();
+      updateTopProducts();
+      updateRecentActivity();
+      updateQuickStats();
+      
+      dashboardData.lastUpdated = new Date();
+      document.getElementById('last-updated').textContent = formatTime(new Date());
+  }
+
+  function updateSummaryCards() {
+      const productsCount = dashboardData.products.length;
+      const purchasesCount = dashboardData.purchases.length;
+      
+      // Total Products
+      document.getElementById('total-products-count').textContent = productsCount;
+      document.getElementById('products-trend').textContent = `+${purchasesCount} orders`;
+      
+      // Stock Value - use calculated stock (original + purchases)
+      const totalStockValue = dashboardData.products.reduce((sum, product) => {
+          const price = product.price || 0;
+          const stock = product.calculatedStock || 0;
+          return sum + (price * stock);
+      }, 0);
+      
+      document.getElementById('total-stock-value').textContent = `₹${Math.round(totalStockValue).toLocaleString()}`;
+      
+      // Low Stock - use calculated stock
+      const lowStockCount = dashboardData.products.filter(p => {
+          const stock = p.calculatedStock || 0;
+          return stock > 0 && stock < 10;
+      }).length;
+      
+      const criticalStockCount = dashboardData.products.filter(p => {
+          const stock = p.calculatedStock || 0;
+          return stock > 0 && stock < 3;
+      }).length;
+      
+      document.getElementById('low-stock-count').textContent = lowStockCount;
+      document.getElementById('critical-stock-count').textContent = `${criticalStockCount} critical`;
+      
+      // Total Sales - calculate from purchases using nested product prices
+      const totalSalesValue = dashboardData.purchases.reduce((sum, purchase) => {
+          let productPrice = 0;
+          
+          // Use the price from the nested product object in purchase
+          if (purchase.product && purchase.product.price) {
+              productPrice = purchase.product.price;
+          } else {
+              // Fallback: find product by ID from our products array
+              const productId = purchase.product ? purchase.product.id : null;
+              if (productId) {
+                  const product = dashboardData.products.find(p => p.id === productId);
+                  productPrice = product ? product.price : 0;
+              } else {
+                  // Final fallback: use average price
+                  const averagePrice = dashboardData.products.length > 0 
+                      ? dashboardData.products.reduce((sum, p) => sum + (p.price || 0), 0) / dashboardData.products.length
+                      : 0;
+                  productPrice = averagePrice;
+              }
+          }
+          
+          return sum + (productPrice * purchase.quantity);
+      }, 0);
+      
+      document.getElementById('total-sales-value').textContent = `₹${Math.round(totalSalesValue).toLocaleString()}`;
+      document.getElementById('total-orders-count').textContent = purchasesCount;
+      
+      // Total Stock Items - use calculated stock
+      const totalStockItems = dashboardData.products.reduce((sum, product) => 
+          sum + (product.calculatedStock || 0), 0
+      );
+      document.getElementById('stock-items-count').textContent = `${totalStockItems} items in stock`;
+  }
+
+  function updateStockDistribution() {
+      const inStockCount = dashboardData.products.filter(p => (p.calculatedStock || 0) >= 10).length;
+      const lowStockCount = dashboardData.products.filter(p => (p.calculatedStock || 0) > 0 && (p.calculatedStock || 0) < 10).length;
+      const outOfStockCount = dashboardData.products.filter(p => (p.calculatedStock || 0) === 0).length;
+      
+      document.getElementById('in-stock-count').textContent = inStockCount;
+      document.getElementById('low-stock-items').textContent = lowStockCount;
+      document.getElementById('out-of-stock-count').textContent = outOfStockCount;
+      
+      const total = inStockCount + lowStockCount + outOfStockCount;
+      if (total > 0) {
+          document.getElementById('in-stock-bar').style.width = `${(inStockCount / total) * 100}%`;
+          document.getElementById('low-stock-bar').style.width = `${(lowStockCount / total) * 100}%`;
+          document.getElementById('out-of-stock-bar').style.width = `${(outOfStockCount / total) * 100}%`;
+      }
+  }
+
+  function updateTopProducts() {
+      const topProductsList = document.getElementById('top-products-list');
+      
+      if (dashboardData.products.length === 0) {
+          topProductsList.innerHTML = `
+              <div class="text-center py-4">
+                  <i class="fas fa-box-open text-muted fs-1"></i>
+                  <p class="text-muted mt-2">No products data available</p>
+              </div>
+          `;
+          return;
+      }
+      
+      const topProducts = dashboardData.products
+          .map(p => ({
+              ...p,
+              stockValue: (p.price || 0) * (p.calculatedStock || 0),
+              stock: p.calculatedStock || 0
+          }))
+          .sort((a, b) => b.stockValue - a.stockValue)
+          .slice(0, 5);
+      
+      topProductsList.innerHTML = topProducts.map((product, index) => `
+          <div class="d-flex align-items-center mb-3 ${index < topProducts.length - 1 ? 'border-bottom pb-3' : ''}">
+              <div class="flex-shrink-0">
+                  <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                      <i class="fas fa-box text-primary"></i>
+                  </div>
+              </div>
+              <div class="flex-grow-1 ms-3">
+                  <h6 class="mb-0">${product.name}</h6>
+                  <small class="text-muted">${product.category} • Stock: ${product.stock}</small>
+              </div>
+              <div class="flex-shrink-0">
+                  <span class="fw-bold text-success">₹${Math.round(product.stockValue).toLocaleString()}</span>
+              </div>
+          </div>
+      `).join('');
+  }
+
+  function updateRecentActivity() {
+      const activityTable = document.getElementById('recent-activity-table');
+      
+      if (dashboardData.purchases.length === 0) {
+          activityTable.innerHTML = `
+              <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">
+                      <i class="fas fa-clipboard-list me-2"></i>
+                      No recent activity
+                  </td>
+              </tr>
+          `;
+          return;
+      }
+      
+      const recentActivities = dashboardData.purchases.map(purchase => {
+          let productName = 'Unknown Product';
+          
+          // Use the nested product object directly
+          if (purchase.product && purchase.product.name) {
+              productName = purchase.product.name;
+          } else {
+              productName = `Purchase Order #${purchase.id}`;
+          }
+          
+          return {
+              id: purchase.id,
+              productName: productName,
+              type: 'Purchase',
+              quantity: purchase.quantity,
+              date: purchase.createdAt,
+              status: getPurchaseStatus(purchase.quantity)
+          };
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 5);
+      
+      activityTable.innerHTML = recentActivities.map(activity => {
+          const statusClass = activity.status === 'High' ? 'success' : 
+                             activity.status === 'Medium' ? 'warning' : 'danger';
+          
+          return `
+              <tr>
+                  <td>
+                      <div class="d-flex align-items-center">
+                          <i class="fas fa-shopping-cart text-primary me-2"></i>
+                          <span>${activity.productName}</span>
+                      </div>
+                  </td>
+                  <td>${activity.type}</td>
+                  <td>${activity.quantity} units</td>
+                  <td>${formatDateForDisplay(activity.date)}</td>
+                  <td><span class="badge bg-${statusClass}">${activity.status}</span></td>
+              </tr>
+          `;
+      }).join('');
+  }
+
+  function updateQuickStats() {
+      const productsCount = dashboardData.products.length;
+      const purchasesCount = dashboardData.purchases.length;
+      
+      // Categories count
+      const categories = [...new Set(dashboardData.products.map(p => p.category).filter(Boolean))];
+      document.getElementById('categories-count').textContent = categories.length;
+      
+      // Average stock value
+      const totalStockValue = dashboardData.products.reduce((sum, p) => {
+          return sum + ((p.price || 0) * (p.calculatedStock || 0));
+      }, 0);
+      const avgStockValue = productsCount > 0 ? totalStockValue / productsCount : 0;
+      document.getElementById('avg-stock-value').textContent = `₹${Math.round(avgStockValue).toLocaleString()}`;
+      
+      // Stock turnover (simplified)
+      const totalStockItems = dashboardData.products.reduce((sum, p) => sum + (p.calculatedStock || 0), 0);
+      const stockTurnover = totalStockItems > 0 
+          ? Math.min(100, Math.round((purchasesCount / totalStockItems) * 100))
+          : 0;
+      document.getElementById('stock-turnover').textContent = `${stockTurnover}%`;
+      
+      // Last updated
+      document.getElementById('last-updated').textContent = formatTime(new Date());
+  }
+
+  // Utility functions
+  function getPurchaseStatus(quantity) {
+      if (quantity > 15) return 'High';
+      if (quantity > 5) return 'Medium';
+      return 'Low';
+  }
+
+  function formatTime(date) {
+      return date.toLocaleTimeString('en-IN', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          second: '2-digit'
+      });
+  }
+
+  function formatDateForDisplay(dateString) {
+      if (!dateString) return 'N/A';
+      try {
+          const date = new Date(dateString);
+          return date.toLocaleDateString('en-IN', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+          });
+      } catch (e) {
+          return dateString;
+      }
+  }
+
+  function showDashboardLoading() {
+      const loadingHTML = `
+          <div class="text-center py-3">
+              <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+              <span class="text-muted">Loading data...</span>
+          </div>
+      `;
+      
+      const loadingSections = [
+          'total-products-count', 'total-stock-value', 'low-stock-count',
+          'total-sales-value', 'top-products-list', 'recent-activity-table'
+      ];
+      
+      loadingSections.forEach(id => {
+          const element = document.getElementById(id);
+          if (element) {
+              element.innerHTML = loadingHTML;
+          }
+      });
+  }
+
+  function hideDashboardLoading() {
+      // Loading states are replaced by actual data
+  }
+
+  function showDashboardNotification(message, type = 'info') {
+      const existingNotification = document.getElementById('dashboard-notification');
+      if (existingNotification) {
+          existingNotification.remove();
+      }
+      
+      const notification = document.createElement('div');
+      notification.id = 'dashboard-notification';
+      notification.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+      notification.innerHTML = `
+          <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      
+      const sectionTitle = document.querySelector('.section-title');
+      if (sectionTitle) {
+          sectionTitle.parentNode.insertBefore(notification, sectionTitle.nextSibling);
+      }
+      
+      setTimeout(() => {
+          if (notification.parentNode) {
+              notification.remove();
+          }
+      }, 4000);
+  }
+
+  function useMockData() {
+      console.log('Using mock data for demonstration');
+      // Simple mock data to prevent errors
+      dashboardData.products = [
+          {
+              id: 1,
+              name: "Sample Product",
+              category: "Electronics",
+              price: 1000,
+              stockQuantity: 10,
+              calculatedStock: 10
+          }
+      ];
+      dashboardData.purchases = [
+          {
+              id: 1,
+              quantity: 5,
+              createdAt: new Date().toISOString(),
+              product: {
+                  id: 1,
+                  name: "Sample Product",
+                  price: 1000
+              }
+          }
+      ];
+  }
+
+  async function refreshDashboard() {
+      console.log('🔄 Refreshing dashboard...');
+      
+      const refreshBtn = document.querySelector('button[onclick="refreshDashboard()"]');
+      const originalHtml = refreshBtn.innerHTML;
+      refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Refreshing...';
+      refreshBtn.disabled = true;
+      
+      try {
+          await fetchDashboardData();
+          updateDashboardMetrics();
+          showDashboardNotification('Dashboard updated with latest data!', 'success');
+      } catch (error) {
+          console.error('❌ Refresh failed:', error);
+          showDashboardNotification('Failed to refresh data. Please try again.', 'danger');
+      } finally {
+          refreshBtn.innerHTML = originalHtml;
+          refreshBtn.disabled = false;
+      }
+  }
+
+  // Debug function to check data
+  function debugDashboardData() {
+      console.log('=== DASHBOARD DEBUG INFO ===');
+      console.log('Products:', dashboardData.products);
+      console.log('Purchases:', dashboardData.purchases);
+      console.log('Stock Calculation:', dashboardData.products.map(p => ({
+          name: p.name,
+          originalStock: p.stockQuantity,
+          calculatedStock: p.calculatedStock,
+          price: p.price,
+          stockValue: (p.price || 0) * (p.calculatedStock || 0)
+      })));
+  }
+
+  // Initialize when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+      initializeDashboard();
+      
+      // Optional: Auto-refresh every 2 minutes
+      setInterval(() => {
+          refreshDashboard();
+      }, 120000);
+  });
+
+  // Export functions for global use
+  window.initializeDashboard = initializeDashboard;
+  window.refreshDashboard = refreshDashboard;
+  window.getDashboardData = () => dashboardData;
+  window.debugDashboardData = debugDashboardData;
+  </script>
+</div>
+</html>

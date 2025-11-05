@@ -1,0 +1,513 @@
+<!-- Signed Invoices Section-specific styles -->
+<style>
+    .signed-invoice-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 20px;
+        box-shadow: var(--box-shadow);
+        margin-bottom: 20px;
+        border-left: 4px solid var(--success-color);
+        transition: var(--transition);
+    }
+
+    .signed-invoice-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .signed-invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .signed-invoice-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin: 0;
+        flex: 1;
+    }
+
+    .signed-invoice-badge {
+        background: rgba(75, 181, 67, 0.15);
+        color: var(--success-color);
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .signed-invoice-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .signed-invoice-detail {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .signed-invoice-label {
+        font-size: 12px;
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .signed-invoice-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    .signed-invoice-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        padding-top: 15px;
+    }
+
+    .download-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition);
+        text-decoration: none;
+    }
+
+    .download-btn:hover {
+        background: var(--secondary-color);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .no-signed-invoices {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .no-signed-invoices-icon {
+        font-size: 64px;
+        opacity: 0.5;
+        margin-bottom: 20px;
+    }
+
+    .signed-invoices-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card-signed {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 20px;
+        box-shadow: var(--box-shadow);
+        text-align: center;
+        border-top: 4px solid var(--primary-color);
+    }
+
+    .stat-value-signed {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+    }
+
+    .stat-label-signed {
+        font-size: 14px;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .b2b-badge {
+        background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+
+    .invoice-filename {
+        font-family: 'Courier New', monospace;
+        background: rgba(67, 97, 238, 0.1);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+</style>
+
+<!-- Signed Invoices Content -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Signed Invoices</h1>
+        <p class="page-subtitle">View and download digitally signed B2B invoices</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" onclick="refreshSignedInvoices()">
+            <span class="material-symbols-outlined">refresh</span>
+            Refresh
+        </button>
+        <button class="action-button" onclick="window.location.href='/billing?section=invoice-history'">
+            <span class="material-symbols-outlined">history</span>
+            Invoice History
+        </button>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="signed-invoices-stats">
+    <div class="stat-card-signed">
+        <div class="stat-value-signed" id="totalSignedInvoices">0</div>
+        <div class="stat-label-signed">Total Signed Invoices</div>
+    </div>
+    <div class="stat-card-signed">
+        <div class="stat-value-signed" id="thisMonthSigned">0</div>
+        <div class="stat-label-signed">This Month</div>
+    </div>
+    <div class="stat-card-signed">
+        <div class="stat-value-signed" id="lastMonthSigned">0</div>
+        <div class="stat-label-signed">Last Month</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="search-box">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input type="search" id="searchSignedInvoices" class="search-input" placeholder="Search signed invoices...">
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small" id="signedInvoicesCount">0 invoices</span>
+            </div>
+        </div>
+
+        <div id="signedInvoicesContainer">
+            <!-- Dynamic content will be loaded here -->
+            <div class="no-signed-invoices" id="noSignedInvoicesMessage">
+                <span class="material-symbols-outlined no-signed-invoices-icon">description</span>
+                <h5 class="text-muted">No Signed Invoices</h5>
+                <p class="text-muted mb-4">Signed B2B invoices will appear here once they are processed</p>
+                <button class="btn btn-primary" onclick="window.location.href='/billing?section=invoice-history'">
+                    <span class="material-symbols-outlined">visibility</span>
+                    View Invoice History
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="signedInvoicesLoading" class="text-center py-4" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-2">Loading signed invoices...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Signed Invoices Section-specific JavaScript -->
+<script>
+    // Signed Invoices specific variables
+    let signedInvoicesData = [];
+
+    // Initialize signed invoices when the section is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we're on the signed invoices section
+        if (document.getElementById('signedInvoicesContainer')) {
+            initializeSignedInvoices();
+        }
+    });
+
+    // Force initialization when this section is loaded (for Thymeleaf)
+    setTimeout(() => {
+        if (document.getElementById('signedInvoicesContainer') && !window.signedInvoicesInitialized) {
+            initializeSignedInvoices();
+        }
+    }, 100);
+
+    function initializeSignedInvoices() {
+        console.log('Initializing Signed Invoices...');
+        window.signedInvoicesInitialized = true;
+        
+        loadSignedInvoices();
+        
+        const searchInput = document.getElementById('searchSignedInvoices');
+        if (searchInput) {
+            searchInput.addEventListener('input', searchSignedInvoices);
+        }
+    }
+
+    function loadSignedInvoices() {
+        console.log('Loading signed invoices...12345t6');
+        
+        // Show loading state
+        document.getElementById('signedInvoicesLoading').style.display = 'block';
+        document.getElementById('noSignedInvoicesMessage').style.display = 'none';
+        document.getElementById('signedInvoicesContainer').innerHTML = '';
+
+        $.ajax({
+            url: '/cashier/notifications',
+            method: 'GET',
+            success: function (data) {
+                console.log('Signed invoices loaded:', data);
+                signedInvoicesData = data || [];
+                
+                // Hide loading
+                document.getElementById('signedInvoicesLoading').style.display = 'none';
+                
+                if (!signedInvoicesData || signedInvoicesData.length === 0) {
+                    showNoSignedInvoicesMessage();
+                    return;
+                }
+
+                updateSignedInvoicesContainer(signedInvoicesData);
+                updateSignedInvoicesStats(signedInvoicesData);
+                
+            },
+            error: function (err) {
+                console.error('Failed to load signed invoices:', err);
+                document.getElementById('signedInvoicesLoading').style.display = 'none';
+                showErrorLoadingMessage();
+            }
+        });
+    }
+
+    function updateSignedInvoicesContainer(invoices) {
+        const container = document.getElementById('signedInvoicesContainer');
+        container.innerHTML = '';
+
+        // Sort invoices by date (newest first)
+        const sortedInvoices = [...invoices].sort((a, b) => {
+            const dateA = new Date(a.timestamp || a.createdDate || a.date || 0);
+            const dateB = new Date(b.timestamp || b.createdDate || b.date || 0);
+            return dateB - dateA;
+        });
+
+        sortedInvoices.forEach((invoice, index) => {
+            const invoiceCard = createSignedInvoiceCard(invoice, index);
+            container.appendChild(invoiceCard);
+        });
+
+        // Update count
+        document.getElementById('signedInvoicesCount').textContent = `${invoices.length} signed invoice${invoices.length !== 1 ? 's' : ''}`;
+    }
+
+    function createSignedInvoiceCard(invoice, index) {
+        const card = document.createElement('div');
+        card.className = 'signed-invoice-card';
+        console.log("+invoice",invoice);
+        // Extract invoice details from the message format
+        const invoiceDetails = extractInvoiceDetails(invoice);
+        console.log("+invoice",invoiceDetails);
+        card.innerHTML = `
+            <div class="signed-invoice-header">
+                <div class="signed-invoice-title">
+                    ${invoiceDetails.name}
+                    <span class="b2b-badge">B2B</span>
+                </div>
+                <span class="signed-invoice-badge">
+                    <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">verified</span>
+                    Digitally Signed
+                </span>
+            </div>
+            
+            <div class="signed-invoice-details">
+                <div class="signed-invoice-detail">
+                    <span class="signed-invoice-label">Invoice ID</span>
+                    <span class="signed-invoice-value">${invoiceDetails.invoiceNumber}</span>
+                </div>
+                <div class="signed-invoice-detail">
+                    <span class="signed-invoice-label">Date Signed</span>
+                    <span class="signed-invoice-value">${invoiceDetails.formattedDate}</span>
+                </div>
+                <div class="signed-invoice-detail">
+                    <span class="signed-invoice-label">Time</span>
+                    <span class="signed-invoice-value">${invoiceDetails.formattedTime}</span>
+                </div>
+                <div class="signed-invoice-detail">
+                    <span class="signed-invoice-label">Signed By</span>
+                    <span class="signed-invoice-value">${invoiceDetails.signedBy}</span>
+                </div>
+            </div>
+            
+            <div class="signed-invoice-actions">
+                <a href="/cashier/download-signed/${invoice.id}" 
+                   class="download-btn" 
+                   target="_blank">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
+                    Download PDF
+                </a>
+            </div>
+        `;
+        
+        return card;
+    }
+
+    function extractInvoiceDetails(invoice) {
+        // Parse the message to extract invoice details
+        // Expected format: "invoice #287 signed by manager at 2025-10-13T01:37:10.844195800"
+        const message = invoice.message || '';
+        
+        let invoiceNumber = 'Unknown';
+        let signedBy = 'Unknown';
+        let timestamp = new Date();
+        let name = 'Signed Invoice';
+        
+        // Parse the message to extract details
+        //const invoiceMatch = message.match(/invoice #(\d+)/i);
+const invoiceMatch = message.match(/invoice #([A-Z0-9\-]+)/i);
+		console.log("invoice match" ,invoiceMatch );
+		
+        const signedByMatch = message.match(/signed by (\w+)/i);
+        const timestampMatch = message.match(/at (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/i);
+        
+        if (invoiceMatch) {
+            invoiceNumber = invoiceMatch[1];
+        }
+        
+        if (signedByMatch) {
+            signedBy = signedByMatch[1];
+        }
+        
+        if (timestampMatch) {
+            timestamp = new Date(timestampMatch[1]);
+        }
+        
+        // Format date and time
+        const formattedDate = timestamp.toLocaleDateString();
+        const formattedTime = timestamp.toLocaleTimeString();
+        
+        name = `Invoice #${invoiceNumber}`;
+
+        return {
+            name: name,
+            invoiceNumber: invoiceNumber,
+            signedBy: signedBy,
+            timestamp: timestamp,
+            formattedDate: formattedDate,
+            formattedTime: formattedTime
+        };
+    }
+
+    function updateSignedInvoicesStats(invoices) {
+        const totalSigned = invoices.length;
+        
+        // Calculate this month's count
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        const thisMonthCount = invoices.filter(invoice => {
+            const invoiceDetails = extractInvoiceDetails(invoice);
+            const invoiceDate = invoiceDetails.timestamp;
+            return invoiceDate.getMonth() === currentMonth && 
+                   invoiceDate.getFullYear() === currentYear;
+        }).length;
+
+        // Calculate last month's count
+        let lastMonth = currentMonth - 1;
+        let lastMonthYear = currentYear;
+        
+        if (lastMonth < 0) {
+            lastMonth = 11;
+            lastMonthYear = currentYear - 1;
+        }
+        
+        const lastMonthCount = invoices.filter(invoice => {
+            const invoiceDetails = extractInvoiceDetails(invoice);
+            const invoiceDate = invoiceDetails.timestamp;
+            return invoiceDate.getMonth() === lastMonth && 
+                   invoiceDate.getFullYear() === lastMonthYear;
+        }).length;
+
+        document.getElementById('totalSignedInvoices').textContent = totalSigned;
+        document.getElementById('thisMonthSigned').textContent = thisMonthCount;
+        document.getElementById('lastMonthSigned').textContent = lastMonthCount;
+
+        console.log(`Stats - Total: ${totalSigned}, This Month: ${thisMonthCount}, Last Month: ${lastMonthCount}`);
+    }
+
+    function refreshSignedInvoices() {
+        console.log('Refreshing signed invoices...');
+        loadSignedInvoices();
+        
+        // Show refresh feedback
+        const refreshBtn = event.target.closest('button');
+        const originalHtml = refreshBtn.innerHTML;
+        refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Refreshing...';
+        refreshBtn.disabled = true;
+        
+        setTimeout(() => {
+            refreshBtn.innerHTML = originalHtml;
+            refreshBtn.disabled = false;
+        }, 2000);
+    }
+
+    function searchSignedInvoices() {
+        const searchValue = document.getElementById('searchSignedInvoices').value.toLowerCase().trim();
+        
+        if (!searchValue) {
+            // If search is empty, show all data
+            updateSignedInvoicesContainer(signedInvoicesData);
+            return;
+        }
+
+        const filteredInvoices = signedInvoicesData.filter(invoice => {
+            const invoiceDetails = extractInvoiceDetails(invoice);
+            const searchableText = [
+                invoice.id || '',
+                invoice.message || '',
+                invoiceDetails.name,
+                invoiceDetails.invoiceNumber,
+                invoiceDetails.signedBy
+            ].join(' ').toLowerCase();
+
+            return searchableText.includes(searchValue);
+        });
+
+        updateSignedInvoicesContainer(filteredInvoices);
+    }
+
+    function showNoSignedInvoicesMessage() {
+        document.getElementById('noSignedInvoicesMessage').style.display = 'block';
+        document.getElementById('signedInvoicesCount').textContent = '0 invoices';
+        
+        // Reset stats
+        document.getElementById('totalSignedInvoices').textContent = '0';
+        document.getElementById('thisMonthSigned').textContent = '0';
+        document.getElementById('lastMonthSigned').textContent = '0';
+    }
+
+    function showErrorLoadingMessage() {
+        const container = document.getElementById('signedInvoicesContainer');
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <span class="material-symbols-outlined text-danger" style="font-size: 48px;">error</span>
+                <h5 class="text-danger mt-3">Error Loading Signed Invoices</h5>
+                <p class="text-muted">Please try again later</p>
+                <button class="btn btn-primary mt-2" onclick="loadSignedInvoices()">
+                    <span class="material-symbols-outlined">refresh</span>
+                    Try Again
+                </button>
+            </div>
+        `;
+    }
+</script>

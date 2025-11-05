@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <!-- Header Fragment -->
+    <header th:fragment="header(systemType)" class="app-header">
+        <div class="header-content">
+            <div class="brand">
+             	
+            <img src="/logo.png" alt="Logo" height="50" class="d-inline-block align-top">
+       
+                <div class="brand-text" th:text="${systemType == 'admin' ? 'Admin Dashboard' : 'Billing System'}">
+                    Billing System
+                </div>
+            </div>
+            
+            <div class="user-actions">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">
+                        <span th:text="${#strings.substring(username, 0, 1).toUpperCase()}">U</span>
+                    </div>
+                    <span class="username" th:text="${username}">Username</span>
+                </div>
+                
+              <form action="/logout" method="post">
+                <button type="submit" class="logout-btn">
+                    <span class="material-symbols-outlined">logout</span>
+                    Logout
+                </button>
+            </form>
+                
+                <!-- Notifications - Only show for billing system -->
+                <div class="notification-container" th:if="${systemType != 'admin'}">
+                    <button class="notification-bell" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <span id="notificationCount" class="notification-badge" style="display:none;">0</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 320px;" id="notificationsList">
+                        <li class="dropdown-item text-center text-muted">No new notifications</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+   
+
+</body>
+</html>
+

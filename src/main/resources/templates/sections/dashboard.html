@@ -1,0 +1,841 @@
+<!-- Dashboard Section-specific styles -->
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 20px;
+        box-shadow: var(--box-shadow);
+        display: flex;
+        align-items: center;
+        transition: var(--transition);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 24px;
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .stat-change {
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+    .positive {
+        color: var(--success-color);
+    }
+
+    .negative {
+        color: var(--danger-color);
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 25px;
+        box-shadow: var(--box-shadow);
+        margin-bottom: 25px;
+        height: 400px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+    }
+
+    .chart-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin: 0;
+    }
+
+    .chart-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .chart-period {
+        padding: 8px 15px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        background: white;
+        font-size: 14px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .chart-period.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .chart-period:hover:not(.active) {
+        background: rgba(67, 97, 238, 0.1);
+    }
+
+    .chart-wrapper {
+        flex: 1;
+        position: relative;
+        min-height: 300px;
+    }
+
+    .recent-invoices {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 25px;
+        box-shadow: var(--box-shadow);
+    }
+
+    .invoice-status {
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-paid {
+        background: rgba(75, 181, 67, 0.15);
+        color: var(--success-color);
+    }
+
+    .status-pending {
+        background: rgba(248, 150, 30, 0.15);
+        color: var(--warning-color);
+    }
+
+    .status-overdue {
+        background: rgba(247, 37, 133, 0.15);
+        color: var(--danger-color);
+    }
+</style>
+
+<!-- Dashboard Content -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Billing Dashboard</h1>
+        <p class="page-subtitle">Overview of your billing activities and performance</p>
+    </div>
+    <button class="action-button" onclick="window.location.href='/billing?section=invoice'">
+        <span class="material-symbols-outlined">add</span>
+        New Invoice
+    </button>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(67, 97, 238, 0.1); color: var(--primary-color);">
+            <span class="material-symbols-outlined">receipt_long</span>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="totalInvoices">0</div>
+            <div class="stat-label">Total Invoices</div>
+            <div class="stat-change positive" id="invoiceChange">+0% from last month</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(75, 181, 67, 0.1); color: var(--success-color);">
+            <span class="material-symbols-outlined">payments</span>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="totalRevenue">₹0.00</div>
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-change positive" id="revenueChange">+0% from last month</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(248, 150, 30, 0.1); color: var(--warning-color);">
+            <span class="material-symbols-outlined">pending_actions</span>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="pendingInvoices">0</div>
+            <div class="stat-label">Pending Invoices</div>
+            <div class="stat-change negative" id="pendingChange">+0% from last month</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(247, 37, 133, 0.1); color: var(--danger-color);">
+            <span class="material-symbols-outlined">schedule</span>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="overdueInvoices">0</div>
+            <div class="stat-label">Overdue Invoices</div>
+            <div class="stat-change negative" id="overdueChange">+0% from last month</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title">Revenue Distribution</h3>
+                <div class="chart-actions">
+                    <button class="chart-period active" onclick="setChartPeriod('week')">Week</button>
+                    <button class="chart-period" onclick="setChartPeriod('month')">Month</button>
+                    <button class="chart-period" onclick="setChartPeriod('quarter')">Quarter</button>
+                </div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="revenueChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title">Invoice Status</h3>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="invoiceStatusChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Invoices -->
+<div class="recent-invoices">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="chart-title">Recent Invoices</h3>
+        <button class="btn btn-link text-primary p-0 border-0 text-decoration-none" 
+                onclick="window.location.href='/billing?section=invoice-history'"
+                style="font-weight: 500;">
+            View All
+        </button>
+    </div>
+    
+    <div class="table-container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Invoice ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="recentInvoicesTable">
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">Loading recent invoices...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Dashboard Section-specific JavaScript -->
+<script>
+    // Dashboard specific variables
+    let dashboardRevenueChart = null;
+    let dashboardInvoiceStatusChart = null;
+    let dashboardAllInvoices = [];
+    let dashboardCurrentChartPeriod = 'week';
+
+    // Initialize dashboard when the section is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we're on the dashboard section
+        if (document.getElementById('revenueChart')) {
+            initializeDashboard();
+        }
+    });
+
+    // Also initialize when the section becomes visible (for Thymeleaf navigation)
+    function initializeDashboard() {
+        console.log('Initializing Dashboard...');
+        
+        // Load dashboard data
+        loadAllInvoicesForDashboard();
+        
+        // Set up chart period buttons
+        const chartPeriods = document.querySelectorAll('.chart-period');
+        if (chartPeriods) {
+            chartPeriods.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    chartPeriods.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    setChartPeriod(this.textContent.toLowerCase());
+                });
+            });
+        }
+        
+        // Initialize charts with empty data first
+        initializeChartsWithPlaceholder();
+    }
+
+    function initializeChartsWithPlaceholder() {
+        // Initialize revenue chart with placeholder
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        if (dashboardRevenueChart) {
+            dashboardRevenueChart.destroy();
+        }
+        
+        dashboardRevenueChart = new Chart(revenueCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Loading...'],
+                datasets: [{
+                    data: [1],
+                    backgroundColor: ['rgba(200, 200, 200, 0.8)'],
+                    borderColor: ['rgba(200, 200, 200, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: getChartOptions('Revenue distribution data will appear here')
+        });
+
+        // Initialize invoice status chart with placeholder
+        const statusCtx = document.getElementById('invoiceStatusChart').getContext('2d');
+        if (dashboardInvoiceStatusChart) {
+            dashboardInvoiceStatusChart.destroy();
+        }
+        
+        dashboardInvoiceStatusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Loading...'],
+                datasets: [{
+                    data: [1],
+                    backgroundColor: ['rgba(200, 200, 200, 0.8)'],
+                    borderColor: ['rgba(200, 200, 200, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: getChartOptions('Invoice status data will appear here')
+        });
+    }
+
+    function getChartOptions(title) {
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return title;
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    function loadAllInvoicesForDashboard() {
+        console.log('Loading invoices for dashboard...');
+        
+        $.ajax({
+            url: '/invoice-history?page=0&size=1000',
+            type: 'GET',
+            success: function(response) {
+                console.log('Dashboard invoices loaded:', response);
+                if (response && response.content) {
+                    dashboardAllInvoices = response.content;
+                    updateDashboardData();
+                } else {
+                    console.warn('No invoice data received for dashboard');
+                    showNoDataMessage();
+                }
+            },
+            error: function(error) {
+                console.error('Error loading invoices for dashboard:', error);
+                showNoDataMessage();
+            }
+        });
+    }
+
+    function showNoDataMessage() {
+        // Update stats to show zero
+        updateDashboardStats({
+            totalInvoices: 0,
+            totalRevenue: 0,
+            pendingInvoices: 0,
+            overdueInvoices: 0,
+            invoiceChange: 0,
+            revenueChange: 0,
+            pendingChange: 0,
+            overdueChange: 0
+        });
+        
+        // Update recent invoices table
+        document.getElementById('recentInvoicesTable').innerHTML = 
+            '<tr><td colspan="6" class="text-center py-4 text-muted">No invoices found</td></tr>';
+        
+        // Update charts to show no data
+        updateChartsWithNoData();
+    }
+
+    function updateChartsWithNoData() {
+        if (dashboardRevenueChart) {
+            dashboardRevenueChart.data.labels = ['No Data'];
+            dashboardRevenueChart.data.datasets[0].data = [1];
+            dashboardRevenueChart.data.datasets[0].backgroundColor = ['rgba(200, 200, 200, 0.8)'];
+            dashboardRevenueChart.update();
+        }
+        
+        if (dashboardInvoiceStatusChart) {
+            dashboardInvoiceStatusChart.data.labels = ['No Data'];
+            dashboardInvoiceStatusChart.data.datasets[0].data = [1];
+            dashboardInvoiceStatusChart.data.datasets[0].backgroundColor = ['rgba(200, 200, 200, 0.8)'];
+            dashboardInvoiceStatusChart.update();
+        }
+    }
+
+    function updateDashboardData() {
+        if (!dashboardAllInvoices || dashboardAllInvoices.length === 0) {
+            console.log("No invoice data available for dashboard");
+            showNoDataMessage();
+            return;
+        }
+
+        console.log('Updating dashboard with', dashboardAllInvoices.length, 'invoices');
+        
+        const stats = calculateDashboardStats(dashboardAllInvoices);
+        updateDashboardStats(stats);
+        updateRevenueChart(dashboardAllInvoices);
+        updateInvoiceStatusChart(dashboardAllInvoices);
+        updateRecentInvoicesTable(dashboardAllInvoices);
+    }
+
+    function calculateDashboardStats(invoices) {
+        const now = new Date();
+        const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, now.getDate());
+        
+        const currentMonthInvoices = invoices.filter(inv => {
+            const invoiceDate = new Date(inv.date);
+            return invoiceDate >= oneMonthAgo;
+        });
+        
+        const previousMonthInvoices = invoices.filter(inv => {
+            const invoiceDate = new Date(inv.date);
+            return invoiceDate >= twoMonthsAgo && invoiceDate < oneMonthAgo;
+        });
+        
+        const totalInvoices = invoices.length;
+        const totalRevenue = invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+        
+        const pendingInvoices = invoices.filter(inv => 
+            inv.status === 'PENDING' || !inv.status
+        ).length;
+
+        const overdueInvoices = currentMonthInvoices.filter(inv => {
+            if (!inv.dueDate) return false;
+            const dueDate = new Date(inv.dueDate);
+            return dueDate < now && (inv.status === 'PENDING' || !inv.status);
+        }).length;
+        
+        const prevTotalInvoices = previousMonthInvoices.length;
+        const prevTotalRevenue = previousMonthInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+        const prevPendingInvoices = previousMonthInvoices.filter(inv => 
+            inv.status === 'PENDING' || !inv.status
+        ).length;
+        const prevOverdueInvoices = previousMonthInvoices.filter(inv => {
+            if (!inv.dueDate) return false;
+            const dueDate = new Date(inv.dueDate);
+            return dueDate < new Date(oneMonthAgo.getFullYear(), oneMonthAgo.getMonth(), oneMonthAgo.getDate()) && 
+                   (inv.status === 'PENDING' || !inv.status);
+        }).length;
+        
+        const invoiceChange = prevTotalInvoices > 0 ? 
+            Math.round(((totalInvoices - prevTotalInvoices) / prevTotalInvoices) * 100) : 0;
+        const revenueChange = prevTotalRevenue > 0 ? 
+            Math.round(((totalRevenue - prevTotalRevenue) / prevTotalRevenue) * 100) : 0;
+        const pendingChange = prevPendingInvoices > 0 ? 
+            Math.round(((pendingInvoices - prevPendingInvoices) / prevPendingInvoices) * 100) : 0;
+        const overdueChange = prevOverdueInvoices > 0 ? 
+            Math.round(((overdueInvoices - prevOverdueInvoices) / prevOverdueInvoices) * 100) : 0;
+
+        return {
+            totalInvoices,
+            totalRevenue,
+            pendingInvoices,
+            overdueInvoices,
+            invoiceChange,
+            revenueChange,
+            pendingChange,
+            overdueChange
+        };
+    }
+
+    function updateDashboardStats(stats) {
+        document.getElementById('totalInvoices').textContent = stats.totalInvoices || 0;
+        document.getElementById('totalRevenue').textContent = '₹' + (stats.totalRevenue || 0).toFixed(2);
+        document.getElementById('pendingInvoices').textContent = stats.pendingInvoices || 0;
+        document.getElementById('overdueInvoices').textContent = stats.overdueInvoices || 0;
+        
+        updateChangePercentage('invoiceChange', stats.invoiceChange);
+        updateChangePercentage('revenueChange', stats.revenueChange);
+        updateChangePercentage('pendingChange', stats.pendingChange);
+        updateChangePercentage('overdueChange', stats.overdueChange);
+    }
+
+    function updateChangePercentage(elementId, change) {
+        const element = document.getElementById(elementId);
+        if (!element || change === undefined) return;
+        
+        const isPositive = change >= 0;
+        const sign = isPositive ? '+' : '';
+        
+        element.textContent = `${sign}${change}% from last month`;
+        element.className = `stat-change ${isPositive ? 'positive' : 'negative'}`;
+    }
+
+    function updateRevenueChart(invoices) {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        
+        if (dashboardRevenueChart) {
+            dashboardRevenueChart.destroy();
+        }
+        
+        const revenueData = getRevenueDistributionData(invoices, dashboardCurrentChartPeriod);
+        
+        dashboardRevenueChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: revenueData.labels,
+                datasets: [{
+                    data: revenueData.data,
+                    backgroundColor: [
+                        'rgba(67, 97, 238, 0.8)',
+                        'rgba(75, 181, 67, 0.8)',
+                        'rgba(248, 150, 30, 0.8)',
+                        'rgba(247, 37, 133, 0.8)',
+                        'rgba(76, 201, 240, 0.8)',
+                        'rgba(163, 76, 240, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(67, 97, 238, 1)',
+                        'rgba(75, 181, 67, 1)',
+                        'rgba(248, 150, 30, 1)',
+                        'rgba(247, 37, 133, 1)',
+                        'rgba(76, 201, 240, 1)',
+                        'rgba(163, 76, 240, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ₹${value.toFixed(2)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function getRevenueDistributionData(invoices, period) {
+        const result = {
+            labels: [],
+            data: []
+        };
+        
+        const now = new Date();
+        let startDate, endDate;
+        
+        if (period === 'week') {
+            startDate = new Date(now);
+            startDate.setDate(now.getDate() - 7);
+            endDate = new Date(now);
+        } else if (period === 'month') {
+            startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            endDate = new Date(now);
+        } else if (period === 'quarter') {
+            startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+            endDate = new Date(now);
+        }
+        
+        const periodInvoices = invoices.filter(inv => {
+            const invDate = new Date(inv.date);
+            return invDate >= startDate && invDate <= endDate;
+        });
+        
+        // If no invoices in period, show message
+        if (periodInvoices.length === 0) {
+            result.labels = ['No Data for Selected Period'];
+            result.data = [1];
+            return result;
+        }
+        
+        const segments = [
+            { label: 'Small (< ₹1000)', min: 0, max: 1000 },
+            { label: 'Medium (₹1000-5000)', min: 1000, max: 5000 },
+            { label: 'Large (₹5000-10000)', min: 5000, max: 10000 },
+            { label: 'Enterprise (> ₹10000)', min: 10000, max: Infinity }
+        ];
+        
+        segments.forEach(segment => {
+            const segmentRevenue = periodInvoices
+                .filter(inv => (inv.totalAmount || 0) >= segment.min && (inv.totalAmount || 0) < segment.max)
+                .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+            
+            if (segmentRevenue > 0) {
+                result.labels.push(segment.label);
+                result.data.push(segmentRevenue);
+            }
+        });
+        
+        if (result.data.length === 0) {
+            result.labels = ['All Revenue in Other Categories'];
+            result.data = [periodInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)];
+        }
+        
+        return result;
+    }
+
+    function updateInvoiceStatusChart(invoices) {
+        const ctx = document.getElementById('invoiceStatusChart').getContext('2d');
+        
+        if (dashboardInvoiceStatusChart) {
+            dashboardInvoiceStatusChart.destroy();
+        }
+        
+        // Count invoices by status
+        const statusCounts = {
+            paid: 0,
+            pending: 0,
+            overdue: 0
+        };
+        
+        const now = new Date();
+        invoices.forEach(inv => {
+            if (inv.status === 'PAID') {
+                statusCounts.paid++;
+            } else if (inv.dueDate && new Date(inv.dueDate) < now) {
+                statusCounts.overdue++;
+            } else {
+                statusCounts.pending++;
+            }
+        });
+        
+        // Filter out zero values for better chart display
+        const labels = [];
+        const data = [];
+        const backgroundColors = [];
+        const borderColors = [];
+        
+        if (statusCounts.paid > 0) {
+            labels.push('Paid');
+            data.push(statusCounts.paid);
+            backgroundColors.push('rgba(75, 181, 67, 0.8)');
+            borderColors.push('rgba(75, 181, 67, 1)');
+        }
+        
+        if (statusCounts.pending > 0) {
+            labels.push('Pending');
+            data.push(statusCounts.pending);
+            backgroundColors.push('rgba(248, 150, 30, 0.8)');
+            borderColors.push('rgba(248, 150, 30, 1)');
+        }
+        
+        if (statusCounts.overdue > 0) {
+            labels.push('Overdue');
+            data.push(statusCounts.overdue);
+            backgroundColors.push('rgba(247, 37, 133, 0.8)');
+            borderColors.push('rgba(247, 37, 133, 1)');
+        }
+        
+        // If no data, show message
+        if (data.length === 0) {
+            labels.push('No Status Data');
+            data.push(1);
+            backgroundColors.push('rgba(200, 200, 200, 0.8)');
+            borderColors.push('rgba(200, 200, 200, 1)');
+        }
+        
+        dashboardInvoiceStatusChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} invoices (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateRecentInvoicesTable(invoices) {
+        const tableBody = document.getElementById('recentInvoicesTable');
+        tableBody.innerHTML = '';
+
+        if (!invoices || invoices.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No recent invoices found</td></tr>';
+            return;
+        }
+
+        // Sort invoices by date (newest first) and take the 5 most recent
+        const recentInvoices = invoices
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5);
+
+        recentInvoices.forEach(invoice => {
+            const statusClass = getStatusClass(invoice);
+            const statusText = getStatusText(invoice);
+            
+            const newRow = `
+                <tr>
+                    <td>${invoice.id || 'N/A'}</td>
+                    <td>${invoice.customerName || 'Unknown Customer'}</td>
+                    <td>${invoice.date ? new Date(invoice.date).toLocaleDateString() : 'N/A'}</td>
+                    <td>₹${(invoice.totalAmount || 0).toFixed(2)}</td>
+                    <td><span class="invoice-status ${statusClass}">${statusText}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewInvoiceDetails('${invoice.id}')">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                        </button>
+                    </td>
+                </tr>`;
+            tableBody.insertAdjacentHTML('beforeend', newRow);
+        });
+    }
+
+    function getStatusClass(invoice) {
+        if (invoice.status === 'PAID') return 'status-paid';
+        
+        if (invoice.dueDate) {
+            const dueDate = new Date(invoice.dueDate);
+            const now = new Date();
+            if (dueDate < now) return 'status-overdue';
+        }
+        
+        return 'status-pending';
+    }
+
+    function getStatusText(invoice) {
+        if (invoice.status === 'PAID') return 'Paid';
+        
+        if (invoice.dueDate) {
+            const dueDate = new Date(invoice.dueDate);
+            const now = new Date();
+            if (dueDate < now) return 'Overdue';
+        }
+        
+        return 'Pending';
+    }
+
+    function viewInvoiceDetails(invoiceId) {
+        console.log('Viewing invoice details for:', invoiceId);
+        
+        // Store the invoice ID to view details in the invoice section
+        sessionStorage.setItem('viewInvoiceId', invoiceId);
+        
+        // Navigate to invoice section
+        window.location.href = '/billing?section=invoice';
+    }
+
+    function setChartPeriod(period) {
+        dashboardCurrentChartPeriod = period;
+        
+        if (dashboardRevenueChart) {
+            dashboardRevenueChart.destroy();
+        }
+        
+        updateRevenueChart(dashboardAllInvoices);
+    }
+
+    // Force initialization when this section is loaded (for Thymeleaf)
+    setTimeout(() => {
+        if (document.getElementById('revenueChart') && !window.dashboardInitialized) {
+            window.dashboardInitialized = true;
+            initializeDashboard();
+        }
+    }, 100);
+</script>
